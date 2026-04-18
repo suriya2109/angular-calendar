@@ -21,6 +21,8 @@ export class Sidebar {
   rangePreset = signal<'today' | 'week' | 'month' | 'next7' | 'single'>('today');
   activeMonth = signal(new Date().getMonth());
   activeYear = signal(new Date().getFullYear());
+  myCalendarsOpen = signal(true);
+  categoriesOpen = signal(true);
   weekdays = WEEKDAYS;
 
   monthLabel = computed(() => `${MONTH_NAMES[this.activeMonth()]} ${this.activeYear()}`);
@@ -185,6 +187,14 @@ export class Sidebar {
   isToday(day: number) {
     const today = this.today();
     return today.year === this.activeYear() && today.month === this.activeMonth() && today.day === day;
+  }
+
+  toggleMyCalendars() {
+    this.myCalendarsOpen.update(value => !value);
+  }
+
+  toggleCategories() {
+    this.categoriesOpen.update(value => !value);
   }
 }
 

@@ -18,12 +18,18 @@
 
         <section class="profile-card">
             <div class="profile-row">
-                <div class="avatar">AL</div>
-                <div class="profile-text">
-                    <div class="profile-name">Antonio Larentio</div>
-                    <div class="profile-role">Product Designer</div>
+                <div class="avatar">
+                    <img src="assets/icons/user.svg" alt="User avatar" width="32" height="32" />
                 </div>
-                <button class="badge-btn" aria-label="Notifications">6</button>
+                <div class="profile-text">
+                    <div class="profile-name">Ram</div>
+                    <div class="profile-role">Software Engineer</div>
+                </div>
+                @if (!collapsed()) {
+                <button type="button" class="badge-btn" aria-label="Notification" title="notification">
+            <span class="badge-number">3</span>
+            <img src="assets/icons/notification.svg" alt="User" width="16" height="16" />
+          </button> }
             </div>
         </section>
 
@@ -36,14 +42,14 @@
                 </div>
             </div>
 
-            <div class="range-summary">{{ rangeLabel() }}</div>
+            <!-- <div class="range-summary">{{ rangeLabel() }}</div>
 
             <div class="range-options">
                 <button class="pill secondary" [class.selected]="rangePreset() === 'today'" (click)="setRangePreset('today')">Today</button>
                 <button class="pill secondary" [class.selected]="rangePreset() === 'week'" (click)="setRangePreset('week')">This week</button>
                 <button class="pill secondary" [class.selected]="rangePreset() === 'month'" (click)="setRangePreset('month')">This month</button>
                 <button class="pill secondary" [class.selected]="rangePreset() === 'next7'" (click)="setRangePreset('next7')">Next 7 days</button>
-            </div>
+            </div> -->
 
             <!-- Weekdays -->
             <div class="weekday-row">
@@ -62,48 +68,70 @@
         </section>
 
         <section class="event-card">
+            <div class="event-meta event-clock">
+                <img src="assets/icons/clock.svg" alt="Clock icon" width="16" height="16" /> 14 mins
+            </div>
             <div class="event-meta">12:00 - 13:30</div>
             <div class="event-title">Meet Gabriel at the International Library</div>
             <div class="event-actions">
                 <button class="pill secondary">Later</button>
                 <button class="pill primary">Details</button>
             </div>
-            <div class="event-illustration"></div>
+            <div class="event-illustration">
+                <img src="assets/icons/book.svg" alt="Event illustration" width="80" height="80" />
+            </div>
         </section>
 
         <section class="panel-block">
             <div class="panel-header compact">
                 <div class="panel-title">My Calendars</div>
-                <button class="toggle-btn">▼</button>
+                <button type="button" class="toggle-btn" (click)="toggleMyCalendars()" [class.expanded]="myCalendarsOpen()">
+                <img
+                    src="assets/icons/accordion-arrow.svg"
+                    alt="Event illustration"
+                    width="24"
+                    height="24"
+                />
+                </button>
             </div>
 
-            <label class="checkbox-row">
-        <input type="checkbox" checked />
-        <span class="checkmark"></span>
-        <span>Antonio Larentio</span>
-        <span class="item-badge">8</span>
-      </label>
-
-            <label class="checkbox-row">
-        <input type="checkbox" checked />
-        <span class="checkmark"></span>
-        <span>Tasks</span>
-      </label>
-
-            <label class="checkbox-row">
-        <input type="checkbox" checked />
-        <span class="checkmark"></span>
-        <span>Birthdays</span>
-        <span class="item-badge">6</span>
-      </label>
+            @if (myCalendarsOpen()) {
+            <div class="checkbox-group">
+                <label class="checkbox-row">
+                    <input type="checkbox" checked />
+                    <span class="checkmark"></span>
+                    <span>Antonio Larentio</span>
+                    <span class="item-badge">8</span>
+                </label>
+                <label class="checkbox-row">
+                    <input type="checkbox" checked />
+                    <span class="checkmark"></span>
+                    <span>Tasks</span>
+                </label>
+                <label class="checkbox-row">
+                    <input type="checkbox" checked />
+                    <span class="checkmark"></span>
+                    <span>Birthdays</span>
+                    <span class="item-badge">6</span>
+                </label>
+            </div>
+            }
         </section>
 
         <section class="panel-block">
             <div class="panel-header compact">
                 <div class="panel-title">Categories</div>
-                <button class="toggle-btn">▼</button>
+                <button type="button" class="toggle-btn" (click)="toggleCategories()" [class.expanded]="categoriesOpen()">
+          <img
+            src="assets/icons/accordion-arrow.svg"
+            alt="Event illustration"
+            width="24"
+            height="24"
+          />
+        </button>
             </div>
 
+            @if (categoriesOpen()) {
             <div class="category-row">
                 <span class="category-dot personal"></span>
                 <span>Personal</span>
@@ -121,6 +149,7 @@
                 <span>Health</span>
                 <span class="category-bar health"></span>
             </div>
+            }
         </section>
     </aside>
 
