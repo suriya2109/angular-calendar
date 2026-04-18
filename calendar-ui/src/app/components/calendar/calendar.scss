@@ -1,0 +1,177 @@
+.calendar {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding: 24px;
+    min-height: 240px;
+    border-top-left-radius: 32px;
+    border-top-right-radius: 32px;
+    background: #ffffff;
+    box-shadow: 0 18px 70px rgba(16, 24, 40, 0.08);
+    &__header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+    }
+    &__heading {
+        display: flex;
+        align-items: center;
+        font-size: 42px !important;
+        line-height: 48px;
+    }
+    &__label {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #101828;
+    }
+    &__actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    &__view-toggle {
+        display: inline-flex;
+        gap: 8px;
+        padding: 6px;
+        border-radius: 999px;
+        background: #f4f5f7;
+    }
+    &__view-button {
+        border: none;
+        background: transparent;
+        color: #475467;
+        font-weight: 600;
+        padding: 10px 16px;
+        border-radius: 999px;
+        cursor: pointer;
+        transition: background-color 0.16s ease, color 0.16s ease;
+    }
+    &__view-button:hover {
+        background: rgba(15, 23, 42, 0.04);
+    }
+    &__view-button--active {
+        background: #101828;
+        color: #ffffff;
+    }
+    &__view-button--active:hover {
+        color: #0f172a;
+    }
+    &__nav-group {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    &__icon-button,
+    &__today-button {
+        border: none;
+        border-radius: 999px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+    &__icon-button {
+        width: 40px;
+        height: 40px;
+        color: #101828;
+        background: #f8fafc;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    &__icon-button:hover {
+        background: #e2e8f0;
+    }
+    &__today-button {
+        padding: 10px 18px;
+        background: #ffffff;
+        border: 1px solid #d1d5db;
+        color: #101828;
+    }
+    &__today-button:hover {
+        background: #f8fafc;
+    }
+    &__week-row {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        padding: 20px 0 4px;
+        border-top: 1px solid #f4f5f7;
+    }
+    &__week-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 16px;
+        background: #f8fafc;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.15rem;
+    }
+    &__date-pills {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(72px, 1fr));
+        gap: 10px;
+        width: 100%;
+    }
+    &__date-pill {
+        display: grid;
+        gap: 4px;
+        padding: 16px 10px;
+        min-width: 72px;
+        justify-items: center;
+        border: 1px solid transparent;
+        border-radius: 20px;
+        background: #f2f2f2;
+        color: #475467;
+        cursor: pointer;
+        transition: transform 0.16s ease, background-color 0.16s ease, color 0.16s ease, border-color 0.16s ease;
+    }
+    &__date-pill:hover {
+        background: #eef2ff;
+    }
+    &__date-pill--selected {
+        background: #0f172a;
+        color: #ffffff;
+        border-color: transparent;
+    }
+    &__date-pill--selected:hover {
+        color: #0f172a;
+    }
+    &__day-name {
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+    &__day-number {
+        font-size: 32px;
+        font-weight: 700;
+        line-height: 40px;
+    }
+    @media (max-width: 880px) {
+        &__header,
+        &__week-row {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        &__actions,
+        &__nav-group {
+            justify-content: flex-start;
+            width: 100%;
+        }
+        &__date-pills {
+            grid-template-columns: repeat(4, minmax(64px, 1fr));
+        }
+    }
+    @media (max-width: 640px) {
+        padding: 18px;
+        &__view-toggle {
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        &__date-pills {
+            grid-template-columns: repeat(3, minmax(64px, 1fr));
+        }
+    }
+}

@@ -1,0 +1,38 @@
+<section class="calendar">
+    <header class="calendar__header">
+        <div class="calendar__heading">
+            <span class="calendar__label">{{ title() }}</span>
+        </div>
+
+        <div class="calendar__actions">
+            <div class="calendar__view-toggle">
+                <button *ngFor="let view of views" type="button" class="calendar__view-button" [class.calendar__view-button--active]="selectedView() === view.key" (click)="setView(view.key)">
+          {{ view.label }}
+        </button>
+            </div>
+
+            <div class="calendar__nav-group">
+                <button type="button" class="calendar__icon-button" (click)="prev()" aria-label="Previous">
+          ‹
+        </button>
+                <button type="button" class="calendar__today-button" (click)="gotoToday()">Today</button>
+                <button type="button" class="calendar__icon-button" (click)="next()" aria-label="Next">
+          ›
+        </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="calendar__week-row">
+        <div class="calendar__week-icon">
+            <span>📅</span>
+        </div>
+
+        <div class="calendar__date-pills">
+            <button *ngFor="let day of weekDates()" type="button" class="calendar__date-pill" [class.calendar__date-pill--selected]="isSelected(day)" (click)="selectDate(day)">
+        <span class="calendar__day-name">{{ weekdays[day.getDay()] }}</span>
+        <span class="calendar__day-number">{{ day.getDate() }}</span>
+      </button>
+        </div>
+    </div>
+</section>
