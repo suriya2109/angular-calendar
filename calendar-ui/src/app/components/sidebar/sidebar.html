@@ -1,0 +1,130 @@
+<div class="sidebar-container" [class.mobile-open]="mobileOpen()">
+    <button class="mobile-hamburger" type="button" aria-label="Open menu" (click)="toggleMobile()">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+
+    <aside class="sidebar" [class.collapsed]="collapsed()">
+        <div class="sidebar-control-row">
+            <button class="collapse-btn" type="button" (click)="toggleCollapse()" aria-label="Toggle sidebar">
+        @if (!collapsed()) {
+          <span>«</span>
+        } @else {
+          <span>»</span>
+        }
+      </button>
+        </div>
+
+        <section class="profile-card">
+            <div class="profile-row">
+                <div class="avatar">AL</div>
+                <div class="profile-text">
+                    <div class="profile-name">Antonio Larentio</div>
+                    <div class="profile-role">Product Designer</div>
+                </div>
+                <button class="badge-btn" aria-label="Notifications">6</button>
+            </div>
+        </section>
+
+        <section class="calendar-panel">
+            <div class="panel-header">
+                <div class="panel-title">{{ monthLabel() }}</div>
+                <div class="panel-nav">
+                    <button class="icon-btn" type="button" (click)="prevMonth()">‹</button>
+                    <button class="icon-btn" type="button" (click)="nextMonth()">›</button>
+                </div>
+            </div>
+
+            <div class="range-summary">{{ rangeLabel() }}</div>
+
+            <div class="range-options">
+                <button class="pill secondary" [class.selected]="rangePreset() === 'today'" (click)="setRangePreset('today')">Today</button>
+                <button class="pill secondary" [class.selected]="rangePreset() === 'week'" (click)="setRangePreset('week')">This week</button>
+                <button class="pill secondary" [class.selected]="rangePreset() === 'month'" (click)="setRangePreset('month')">This month</button>
+                <button class="pill secondary" [class.selected]="rangePreset() === 'next7'" (click)="setRangePreset('next7')">Next 7 days</button>
+            </div>
+
+            <!-- Weekdays -->
+            <div class="weekday-row">
+                @for (day of weekdays; track $index) {
+                <span>{{ day }}</span> }
+            </div>
+
+            <!-- Dates -->
+            <div class="dates-grid">
+                @for (date of monthGrid(); track $index) { @if (date === null) {
+                <span class="date empty"></span> } @else {
+                <button class="date" type="button" [class.active]="isSelected(date)" [class.today]="isToday(date)" [class.range]="isInRange(date)" [class.range-start]="isRangeStart(date)" [class.range-end]="isRangeEnd(date)" (click)="selectDate(date)">
+              {{ date }}
+            </button> } }
+            </div>
+        </section>
+
+        <section class="event-card">
+            <div class="event-meta">12:00 - 13:30</div>
+            <div class="event-title">Meet Gabriel at the International Library</div>
+            <div class="event-actions">
+                <button class="pill secondary">Later</button>
+                <button class="pill primary">Details</button>
+            </div>
+            <div class="event-illustration"></div>
+        </section>
+
+        <section class="panel-block">
+            <div class="panel-header compact">
+                <div class="panel-title">My Calendars</div>
+                <button class="toggle-btn">▼</button>
+            </div>
+
+            <label class="checkbox-row">
+        <input type="checkbox" checked />
+        <span class="checkmark"></span>
+        <span>Antonio Larentio</span>
+        <span class="item-badge">8</span>
+      </label>
+
+            <label class="checkbox-row">
+        <input type="checkbox" checked />
+        <span class="checkmark"></span>
+        <span>Tasks</span>
+      </label>
+
+            <label class="checkbox-row">
+        <input type="checkbox" checked />
+        <span class="checkmark"></span>
+        <span>Birthdays</span>
+        <span class="item-badge">6</span>
+      </label>
+        </section>
+
+        <section class="panel-block">
+            <div class="panel-header compact">
+                <div class="panel-title">Categories</div>
+                <button class="toggle-btn">▼</button>
+            </div>
+
+            <div class="category-row">
+                <span class="category-dot personal"></span>
+                <span>Personal</span>
+                <span class="category-bar personal"></span>
+            </div>
+
+            <div class="category-row">
+                <span class="category-dot work"></span>
+                <span>Work</span>
+                <span class="category-bar work"></span>
+            </div>
+
+            <div class="category-row">
+                <span class="category-dot health"></span>
+                <span>Health</span>
+                <span class="category-bar health"></span>
+            </div>
+        </section>
+    </aside>
+
+    @if (mobileOpen()) {
+    <div class="sidebar-backdrop" (click)="closeMobile()"></div>
+    }
+</div>
