@@ -109,6 +109,13 @@
         align-items: center;
         gap: 14px;
     }
+    &__event-block {
+        display: flex;
+        gap: 20px;
+        justify-content: space-between;
+        align-items: center;
+        position: relative;
+    }
     &__avatar {
         width: 42px;
         height: 42px;
@@ -314,12 +321,12 @@
         margin-bottom: 16px;
         max-width: 150px;
     }
-    &__event-actions {
-        margin-bottom: 20px;
-    }
     &__event-illustration {
         display: flex;
         justify-content: center;
+        position: absolute;
+        right: 0;
+        top: -41px;
     }
     &__checkbox-group,
     &__category-row {

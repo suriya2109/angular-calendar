@@ -1,9 +1,17 @@
 <div class="app">
     <div class="app__body">
-        <app-sidebar></app-sidebar>
+        <header class="app__mobile-bar">
+            <button type="button" class="app__mobile-menu-button" aria-label="Open menu" (click)="sidebar.toggleMobile()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <div class="app__mobile-title">Calendar</div>
+        </header>
+
+        <app-sidebar #sidebar></app-sidebar>
         <div class="app__content">
             <app-calendar></app-calendar>
-            <app-calendar-grid></app-calendar-grid>
         </div>
     </div>
 </div>

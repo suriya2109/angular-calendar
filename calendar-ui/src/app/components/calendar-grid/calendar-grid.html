@@ -1,90 +1,68 @@
 <section class="calendar-grid">
-    <div class="calendar-grid__content">
-        <div class="calendar-grid__topbar">
-            <div class="calendar-grid__view-pill-row">
-                <button class="calendar-grid__view-pill">Month</button>
-                <button class="calendar-grid__view-pill calendar-grid__view-pill--active">Week</button>
-                <button class="calendar-grid__view-pill">Day</button>
-            </div>
-            <div class="calendar-grid__nav-pill-row">
-                <button class="calendar-grid__nav-pill">‹</button>
-                <button class="calendar-grid__nav-pill calendar-grid__nav-pill--primary">Today</button>
-                <button class="calendar-grid__nav-pill">›</button>
-            </div>
+  <div class="calendar-grid__content">
+    <div class="calendar-grid__schedule">
+      <div class="calendar-grid__time-column">
+        @for (time of times; track $index) {
+        <span>{{ time }}</span>
+        }
+      </div>
+
+      <div class="calendar-grid__schedule-board">
+        <div class="calendar-grid__day-headers">
+          @for (day of weekdays; track $index) {
+          <span>{{ day }}</span>
+          }
         </div>
 
-        <div class="calendar-grid__schedule">
-            <div class="calendar-grid__time-column">
-                <span>6 am</span>
-                <span>7 am</span>
-                <span>8 am</span>
-                <span>9 am</span>
-                <span>10 am</span>
-                <span>11 am</span>
-                <span>12 pm</span>
-            </div>
-            <div class="calendar-grid__schedule-board">
-                <div class="calendar-grid__day-headers">
-                    <span>Mon</span>
-                    <span>Tue</span>
-                    <span>Wed</span>
-                    <span>Thu</span>
-                    <span>Fri</span>
-                    <span>Sat</span>
-                    <span>Sun</span>
-                </div>
-                <div class="calendar-grid__grid-lines">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </div>
-                <div class="calendar-grid__event-grid">
-                    <div class="calendar-grid__event-card calendar-grid__event-card--purple calendar-grid__event-card--pos1">
-                        <div class="calendar-grid__event-title">Booking taxi app</div>
-                        <div class="calendar-grid__event-time">06:00 - 07:30</div>
-                    </div>
-                    <div class="calendar-grid__event-card calendar-grid__event-card--green calendar-grid__event-card--pos2">
-                        <div class="calendar-grid__event-title">Design onboarding</div>
-                        <div class="calendar-grid__event-time">06:00 - 07:10</div>
-                    </div>
-                    <div class="calendar-grid__event-card calendar-grid__event-card--blue calendar-grid__event-card--pos3">
-                        <div class="calendar-grid__event-title">Development meet</div>
-                        <div class="calendar-grid__event-time">08:40 - 10:00</div>
-                    </div>
-                    <div class="calendar-grid__event-card calendar-grid__event-card--yellow calendar-grid__event-card--pos4">
-                        <div class="calendar-grid__event-title">Design session</div>
-                        <div class="calendar-grid__event-time">07:50 - 09:30</div>
-                    </div>
-                    <div class="calendar-grid__event-card calendar-grid__event-card--pink calendar-grid__event-card--pos5">
-                        <div class="calendar-grid__event-title">Design our website</div>
-                        <div class="calendar-grid__event-time">08:30 - 10:50</div>
-                    </div>
-                </div>
-            </div>
+        <div class="calendar-grid__grid-lines">
+          @for (day of weekdays; track $index) {
+          <span></span>
+          }
         </div>
 
-        <div class="calendar-grid__details-card">
-            <div class="calendar-grid__details-title">Meet with Jonson Rider</div>
-            <div class="calendar-grid__details-meta">
-                <span>Tuesday, 18 December</span>
-                <span>06:00 - 07:00</span>
-            </div>
-            <div class="calendar-grid__details-location">Park Lane Office</div>
-            <div class="calendar-grid__details-tags">
-                <span>Design</span>
-                <span>Personal project</span>
-                <span>Developer task</span>
-            </div>
-            <div class="calendar-grid__details-avatars">
-                <span>AA</span>
-                <span>JS</span>
-                <span>MB</span>
-            </div>
-            <button class="calendar-grid__details-action">Add Event</button>
+        <div class="calendar-grid__slot-grid">
+          @for (slot of slots(); track slot.dayIndex + '-' + slot.timeIndex) {
+          <button
+            type="button"
+            class="calendar-grid__slot"
+            [class.calendar-grid__slot--selected]="isSelectedSlot(slot)"
+            [style.gridColumn]="slot.gridColumn"
+            [style.gridRow]="slot.gridRow"
+            (click)="selectSlot(slot)"
+            [attr.aria-label]="slot.dateLabel + ' at ' + slot.timeLabel"
+          ></button>
+          }
         </div>
+
+        <div class="calendar-grid__event-grid">
+          @for (event of events; track event.id) {
+          <article
+            class="calendar-grid__event-card"
+            [class.calendar-grid__event-card--purple]="event.theme === 'purple'"
+            [class.calendar-grid__event-card--green]="event.theme === 'green'"
+            [class.calendar-grid__event-card--blue]="event.theme === 'blue'"
+            [class.calendar-grid__event-card--yellow]="event.theme === 'yellow'"
+            [class.calendar-grid__event-card--pink]="event.theme === 'pink'"
+            [class.calendar-grid__event-card--violet]="event.theme === 'violet'"
+            [style.gridColumn]="event.gridColumn"
+            [style.gridRow]="event.gridRow"
+          >
+            <div class="calendar-grid__event-card-head">
+              <div>
+                <div class="calendar-grid__event-title">{{ event.title }}</div>
+                <div class="calendar-grid__event-time">{{ event.startTime }} - {{ event.endTime }}</div>
+              </div>
+
+              <button type="button" class="calendar-grid__event-view" (click)="requestView(event)">
+                View
+              </button>
+            </div>
+
+            <div class="calendar-grid__event-location">{{ event.location }}</div>
+          </article>
+          }
+        </div>
+      </div>
     </div>
+  </div>
 </section>
