@@ -69,7 +69,27 @@ export class EventModal implements OnChanges {
     { title: 'Onboarding meet', time: '10:50 - 12:00', tone: 'pink' },
   ];
 
-  readonly timeOptions = ['06:00', '06:30', '07:00', '07:30', '08:00', '08:30'];
+  readonly timeOptions = [
+    '06:00', '06:30',
+    '07:00', '07:30',
+    '08:00', '08:30',
+    '09:00', '09:30',
+    '10:00', '10:30',
+    '11:00', '11:30',
+    '12:00', '12:30',
+    '13:00', '13:30',
+    '14:00', '14:30',
+    '15:00', '15:30',
+    '16:00', '16:30',
+    '17:00', '17:30',
+    '18:00', '18:30',
+    '19:00', '19:30',
+    '20:00', '20:30',
+    '21:00', '21:30',
+    '22:00', '22:30',
+    '23:00', '23:30',
+    '00:00'
+  ];
 
   // 🔹 DEFAULT VALUE (reusable)
   private readonly defaultValue: EventModalValue = {
@@ -101,6 +121,24 @@ export class EventModal implements OnChanges {
   }
 
   // 🔹 HELPERS
+  timeDisplay(time24: string): string {
+    // Convert "06:00" to "6:00 AM", "13:00" to "1:00 PM"
+    const [hours, minutes] = time24.split(':');
+    let hours24 = parseInt(hours, 10);
+    let ampm = 'AM';
+
+    if (hours24 >= 12) {
+      ampm = 'PM';
+      if (hours24 > 12) {
+        hours24 -= 12;
+      }
+    } else if (hours24 === 0) {
+      hours24 = 12;
+    }
+
+    return `${hours24}:${minutes} ${ampm}`;
+  }
+
   isTagSelected(label: string): boolean {
     return this.form.controls.selectedTags.value.includes(label);
   }
@@ -149,14 +187,41 @@ export class EventModal implements OnChanges {
       return null;
     }
 
+    const startTime = this.timeLabel24Hour(slot.timeLabel);
+    const endTime = this.addOneHour(startTime);
+
     return {
       title: '',
       date: slot.dateLabel,
-      startTime: slot.timeLabel,
-      endTime: slot.timeLabel,
+      startTime,
+      endTime,
       location: '',
       selectedTags: [],
       selectedMembers: [],
     };
+  }
+
+  private timeLabel24Hour(label: string): string {
+    // Convert "6 am" to "06:00", "1 pm" to "13:00", etc.
+    const match = label.match(/(\d+)\s*(am|pm)/i);
+    if (!match) return '06:00';
+
+    let hours = parseInt(match[1], 10);
+    const isPm = match[2].toLowerCase() === 'pm';
+
+    if (isPm && hours !== 12) {
+      hours += 12;
+    } else if (!isPm && hours === 12) {
+      hours = 0;
+    }
+
+    return `${hours.toString().padStart(2, '0')}:00`;
+  }
+
+  private addOneHour(time: string): string {
+    // Convert "06:00" to "07:00"
+    const [hours, minutes] = time.split(':');
+    const nextHour = (parseInt(hours, 10) + 1).toString().padStart(2, '0');
+    return `${nextHour}:${minutes}`;
   }
 }

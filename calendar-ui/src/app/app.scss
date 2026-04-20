@@ -6,11 +6,14 @@
         position: relative;
         display: flex;
         flex-direction: column;
-        gap: 24px;
+        gap: 16px;
         padding: 12px;
         background: radial-gradient(circle at top left, rgba(120, 85, 255, 0.16), transparent 32%), linear-gradient(180deg, #11151f 0%, #0b0d14 100%);
         box-shadow: 24px 0 60px rgba(0, 0, 0, 0.3);
         min-height: 100vh;
+        @media(min-width: 768px) {
+            padding: 24px;
+        }
     }
     &__mobile-bar {
         display: none;
@@ -61,12 +64,11 @@
             gap: 40px;
         }
     }
-    @media (max-width: 767px) {
-        &__mobile-bar {
-            display: flex;
-        }
-        &__content {
-            border-radius: 24px;
+    &__mobile-bar {
+        display: flex;
+        flex-direction: row-reverse;
+        @media (min-width: 768px) {
+            display: none;
         }
     }
 }

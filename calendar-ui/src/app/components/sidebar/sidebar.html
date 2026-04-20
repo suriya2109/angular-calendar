@@ -1,10 +1,4 @@
 <div class="sidebar" [class.sidebar--mobile-open]="mobileOpen()" [class.sidebar--collapsed]="collapsed()">
-    <button class="sidebar__mobile-hamburger" type="button" aria-label="Open menu" (click)="toggleMobile()">
-    <span></span>
-    <span></span>
-    <span></span>
-  </button>
-
     <div class="sidebar__content" [class.sidebar__content--collapsed]="collapsed()">
         <div class="sidebar__control-row">
             <button class="sidebar__collapse-btn" type="button" (click)="toggleCollapse()" aria-label="Toggle sidebar">

@@ -116,6 +116,30 @@ function formatDateLabel(date: Date) {
   });
 }
 
+function timeLabel24Hour(label: string): string {
+  // Convert "6 am" to "06:00", "1 pm" to "13:00", etc.
+  const match = label.match(/(\d+)\s*(am|pm)/i);
+  if (!match) return '06:00';
+
+  let hours = parseInt(match[1], 10);
+  const isPm = match[2].toLowerCase() === 'pm';
+
+  if (isPm && hours !== 12) {
+    hours += 12;
+  } else if (!isPm && hours === 12) {
+    hours = 0;
+  }
+
+  return `${hours.toString().padStart(2, '0')}:00`;
+}
+
+function addOneHour(time: string): string {
+  // Convert "06:00" to "07:00"
+  const [hours, minutes] = time.split(':');
+  const nextHour = (parseInt(hours, 10) + 1).toString().padStart(2, '0');
+  return `${nextHour}:${minutes}`;
+}
+
 @Component({
   standalone: true,
   selector: 'app-calendar',
@@ -144,8 +168,27 @@ export class Calendar {
   });
 
   weekDates = computed(() => {
-    const start = startOfWeek(this.activeDate());
-    return Array.from({ length: 7 }, (_, index) => addDays(start, index));
+    const view = this.selectedView();
+    const active = this.activeDate();
+
+    if (view === 'day') {
+      return [active];
+    } else if (view === 'month') {
+      const year = active.getFullYear();
+      const month = active.getMonth();
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+      
+      const daysInMonth = [];
+      for (let i = 1; i <= lastDay.getDate(); i++) {
+        daysInMonth.push(new Date(year, month, i));
+      }
+      return daysInMonth;
+    } else {
+      // week view
+      const start = startOfWeek(active);
+      return Array.from({ length: 7 }, (_, index) => addDays(start, index));
+    }
   });
 
   setView(view: 'month' | 'week' | 'day') {
@@ -254,11 +297,14 @@ export class Calendar {
   }
 
   private buildValueFromSlot(slot: CalendarSlot): EventModalValue {
+    const startTime = timeLabel24Hour(slot.timeLabel);
+    const endTime = addOneHour(startTime);
+
     return {
       ...EMPTY_EVENT,
       date: slot.dateLabel,
-      startTime: slot.timeLabel,
-      endTime: slot.timeLabel,
+      startTime,
+      endTime,
     };
   }
 

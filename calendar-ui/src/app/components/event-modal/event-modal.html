@@ -14,29 +14,29 @@
           </label>
 
                 <button type="button" class="event-modal__dismiss" (click)="close()">
-            ×
+            <img src="assets/icons/close.svg" alt="Close" width="24" height="24" />
           </button>
             </div>
 
             <!-- DATE -->
             <div class="event-modal__field">
                 <img src="assets/icons/date-icon.svg" alt="date" width="24" height="24" />
-                <input type="text" formControlName="date" />
+                <input type="text" formControlName="date" placeholder="Add date" />
             </div>
 
             <!-- TIME -->
             <div class="event-modal__field event-modal__field--split">
                 <img src="assets/icons/clock-black.svg" alt="clock" width="24" height="24" />
 
-                <select formControlName="startTime">
+                <select formControlName="startTime" placeholder="Start time">
             @for (time of timeOptions; track $index) {
-              <option [value]="time">{{ time }}</option>
+              <option [value]="time">{{ timeDisplay(time) }}</option>
             }
           </select>
 
-                <select formControlName="endTime">
+                <select formControlName="endTime" placeholder="End time">
             @for (time of timeOptions; track $index) {
-              <option [value]="time">{{ time }}</option>
+              <option [value]="time">{{ timeDisplay(time) }}</option>
             }
           </select>
             </div>
@@ -44,7 +44,7 @@
             <!-- LOCATION -->
             <div class="event-modal__field">
                 <img src="assets/icons/location.svg" alt="location" width="24" height="24" />
-                <input type="text" formControlName="location" />
+                <input type="text" formControlName="location" placeholder="Add location" />
             </div>
 
             <!-- TAGS -->

@@ -20,23 +20,6 @@
         transform: translateX(0);
         opacity: 1;
     }
-    &__mobile-hamburger {
-        width: 44px;
-        height: 44px;
-        border: none;
-        border-radius: 14px;
-        background: rgba(255, 255, 255, 0.08);
-        color: #fff;
-        display: grid;
-        place-items: center;
-        gap: 4px;
-        padding: 8px;
-        cursor: pointer;
-        z-index: 40;
-        @media(min-width: 768px) {
-            display: none;
-        }
-    }
     &__mobile-hamburger span {
         display: block;
         width: 18px;
@@ -76,22 +59,26 @@
         position: relative;
     }
     &__collapse-btn {
-        border: none;
-        color: #fff;
-        cursor: pointer;
-        background: #3f7dff;
-        padding: 6px;
-        border-radius: 50%;
-        position: absolute;
-        right: -35px;
-        span {
-            display: flex;
-            width: 24px;
-            height: 24px;
-            font-size: 24px;
-            line-height: 32px;
-            align-items: center;
-            justify-content: center;
+        display: none;
+        @media(min-width: 992px) {
+            display: initial;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            background: #3f7dff;
+            padding: 6px;
+            border-radius: 50%;
+            position: absolute;
+            right: -35px;
+            span {
+                display: flex;
+                width: 24px;
+                height: 24px;
+                font-size: 24px;
+                line-height: 32px;
+                align-items: center;
+                justify-content: center;
+            }
         }
     }
     &__profile-card,
@@ -415,7 +402,7 @@
         position: fixed;
         inset: 0;
         background: rgba(0, 0, 0, 0.35);
-        z-index: 30;
+        z-index: -1;
     }
 }
 
