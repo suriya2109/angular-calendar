@@ -92,6 +92,19 @@ export class CalendarGrid implements OnChanges {
     this.viewRequested.emit(event);
   }
 
+  getMemberNamesLabel(event: CalendarEvent): string {
+    return event.selectedMembers.length ? event.selectedMembers.join(', ') : 'No person added';
+  }
+
+  getMemberInitial(name: string): string {
+    return name.trim().charAt(0).toUpperCase() || '?';
+  }
+
+  getMemberTone(index: number): 'peach' | 'mint' | 'slate' {
+    const tones: Array<'peach' | 'mint' | 'slate'> = ['peach', 'mint', 'slate'];
+    return tones[index % tones.length];
+  }
+
   selectMonthDay(day: Date): void {
     this.slotSelected.emit(this.buildMonthSlot(day));
   }

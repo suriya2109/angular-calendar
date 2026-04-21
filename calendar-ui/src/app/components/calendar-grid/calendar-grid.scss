@@ -144,12 +144,42 @@
     color: #475467;
 }
 
-.calendar-grid__event-location {
+.calendar-grid__event-members {
     align-self: end;
-    font-size: 14px;
-    line-height: 20px;
-    font-weight: 600;
-    color: rgba(15, 23, 42, 0.72);
+    display: flex;
+    align-items: center;
+    min-height: 28px;
+}
+
+.calendar-grid__event-member-badge {
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
+    border: 2px solid rgba(255, 255, 255, 0.84);
+    color: #1f2937;
+    margin-left: -8px;
+}
+
+.calendar-grid__event-member-badge:first-child {
+    margin-left: 0;
+}
+
+.calendar-grid__event-member-badge--peach {
+    background: linear-gradient(180deg, #ffcebd 0%, #f3a894 100%);
+}
+
+.calendar-grid__event-member-badge--mint {
+    background: linear-gradient(180deg, #d7f1de 0%, #aee0be 100%);
+}
+
+.calendar-grid__event-member-badge--slate {
+    background: linear-gradient(180deg, #ecedf2 0%, #c9cddc 100%);
 }
 
 .calendar-grid__event-view {

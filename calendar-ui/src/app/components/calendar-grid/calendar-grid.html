@@ -111,7 +111,27 @@
                             ></button>
                         </div>
 
-                        <div class="calendar-grid__event-location">{{ event.location }}</div>
+                        <div
+                            class="calendar-grid__event-members"
+                            [attr.title]="getMemberNamesLabel(event)"
+                            [attr.aria-label]="getMemberNamesLabel(event)"
+                        >
+                            @if (event.selectedMembers.length) {
+                            @for (member of event.selectedMembers; track member; let index = $index) {
+                            <span
+                                class="calendar-grid__event-member-badge"
+                                [class.calendar-grid__event-member-badge--peach]="getMemberTone(index) === 'peach'"
+                                [class.calendar-grid__event-member-badge--mint]="getMemberTone(index) === 'mint'"
+                                [class.calendar-grid__event-member-badge--slate]="getMemberTone(index) === 'slate'"
+                                [style.zIndex]="event.selectedMembers.length - index"
+                            >
+                                {{ getMemberInitial(member) }}
+                            </span>
+                            }
+                            } @else {
+                            <span class="calendar-grid__event-member-badge calendar-grid__event-member-badge--slate">?</span>
+                            }
+                        </div>
                     </article>
                     }
                 </div>
