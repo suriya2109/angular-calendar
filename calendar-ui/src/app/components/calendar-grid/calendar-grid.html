@@ -1,7 +1,6 @@
-﻿<section class="calendar-grid">
+<section class="calendar-grid">
     <div class="calendar-grid__content">
         @if (selectedView === 'month') {
-        <!-- Month View -->
         <div class="calendar-grid__month-view">
             <div class="calendar-grid__month-weekdays">
                 @for (day of weekdays; track $index) {
@@ -11,13 +10,39 @@
 
             <div class="calendar-grid__month-grid">
                 @for (day of monthDays(); track $index) {
-                <div class="calendar-grid__month-day" [class.calendar-grid__month-day--empty]="!day">
+                <div
+                    class="calendar-grid__month-day"
+                    [class.calendar-grid__month-day--empty]="!day"
+                    [class.calendar-grid__month-day--today]="day && isToday(day)"
+                    [class.calendar-grid__month-day--clickable]="day"
+                    (click)="day && selectMonthDay(day)"
+                >
                     @if (day) {
+                    <button
+                        type="button"
+                        class="calendar-grid__month-add"
+                        (click)="selectMonthDay(day); $event.stopPropagation()"
+                        [attr.aria-label]="'Add event on ' + day.toDateString()"
+                        title="Add event"
+                    >
+                        + Add Event
+                    </button>
+
                     <div class="calendar-grid__month-day-number">{{ day.getDate() }}</div>
+
                     <div class="calendar-grid__month-day-events">
                         @for (event of getMonthDayEvents(day); track event.id) {
-                        <div class="calendar-grid__month-event" [class.calendar-grid__month-event--purple]="event.theme === 'purple'" [class.calendar-grid__month-event--green]="event.theme === 'green'" [class.calendar-grid__month-event--blue]="event.theme === 'blue'" [class.calendar-grid__month-event--yellow]="event.theme === 'yellow'"
-                            [class.calendar-grid__month-event--pink]="event.theme === 'pink'" [class.calendar-grid__month-event--violet]="event.theme === 'violet'" (click)="requestView(event)" [title]="event.title">
+                        <div
+                            class="calendar-grid__month-event"
+                            [class.calendar-grid__month-event--purple]="event.theme === 'purple'"
+                            [class.calendar-grid__month-event--green]="event.theme === 'green'"
+                            [class.calendar-grid__month-event--blue]="event.theme === 'blue'"
+                            [class.calendar-grid__month-event--yellow]="event.theme === 'yellow'"
+                            [class.calendar-grid__month-event--pink]="event.theme === 'pink'"
+                            [class.calendar-grid__month-event--violet]="event.theme === 'violet'"
+                            (click)="$event.stopPropagation(); requestView(event)"
+                            [title]="event.title"
+                        >
                             {{ event.title }}
                         </div>
                         }
@@ -28,38 +53,62 @@
             </div>
         </div>
         } @else {
-        <!-- Week/Day View -->
         <div class="calendar-grid__schedule">
             <div class="calendar-grid__time-column">
                 @for (time of times; track $index) {
-                <span>{{ time }}</span> }
+                <span>{{ time }}</span>
+                }
             </div>
 
             <div class="calendar-grid__schedule-board">
                 <div class="calendar-grid__grid-lines">
                     @for (day of weekdays; track $index) {
-                    <span></span> }
+                    <span [class.calendar-grid__grid-line--today]="isTodayByIndex($index)"></span>
+                    }
                 </div>
 
                 <div class="calendar-grid__slot-grid">
                     @for (slot of slots(); track slot.dayIndex + '-' + slot.timeIndex) {
-                    <button type="button" class="calendar-grid__slot" [class.calendar-grid__slot--selected]="isSelectedSlot(slot)" [style.gridColumn]="slot.gridColumn" [style.gridRow]="slot.gridRow" (click)="selectSlot(slot)" [attr.aria-label]="'Add event on ' + slot.dateLabel + ' at ' + slot.timeLabel"
-                        title="Add event - {{ slot.dateLabel }} at {{ slot.timeLabel }}">
-            <span class="calendar-grid__slot-add-event">+ Add Event</span>
-          </button> }
+                    <button
+                        type="button"
+                        class="calendar-grid__slot"
+                        [class.calendar-grid__slot--selected]="isSelectedSlot(slot)"
+                        [style.gridColumn]="slot.gridColumn"
+                        [style.gridRow]="slot.gridRow"
+                        (click)="selectSlot(slot)"
+                        [attr.aria-label]="'Add event on ' + slot.dateLabel + ' at ' + slot.timeLabel"
+                        [title]="'Add event - ' + slot.dateLabel + ' at ' + slot.timeLabel"
+                    >
+                        <span class="calendar-grid__slot-add-event">+ Add Event</span>
+                    </button>
+                    }
                 </div>
 
                 <div class="calendar-grid__event-grid">
                     @for (event of events; track event.id) {
-                    <article class="calendar-grid__event-card" [class.calendar-grid__event-card--purple]="event.theme === 'purple'" [class.calendar-grid__event-card--green]="event.theme === 'green'" [class.calendar-grid__event-card--blue]="event.theme === 'blue'" [class.calendar-grid__event-card--yellow]="event.theme === 'yellow'"
-                        [class.calendar-grid__event-card--pink]="event.theme === 'pink'" [class.calendar-grid__event-card--violet]="event.theme === 'violet'" [style.gridColumn]="event.gridColumn" [style.gridRow]="event.gridRow">
+                    <article
+                        class="calendar-grid__event-card"
+                        [class.calendar-grid__event-card--purple]="event.theme === 'purple'"
+                        [class.calendar-grid__event-card--green]="event.theme === 'green'"
+                        [class.calendar-grid__event-card--blue]="event.theme === 'blue'"
+                        [class.calendar-grid__event-card--yellow]="event.theme === 'yellow'"
+                        [class.calendar-grid__event-card--pink]="event.theme === 'pink'"
+                        [class.calendar-grid__event-card--violet]="event.theme === 'violet'"
+                        [style.gridColumn]="event.gridColumn"
+                        [style.gridRow]="event.gridRow"
+                    >
                         <div class="calendar-grid__event-card-head">
                             <div>
                                 <div class="calendar-grid__event-title">{{ event.title }}</div>
                                 <div class="calendar-grid__event-time">{{ event.startTime }} - {{ event.endTime }}</div>
                             </div>
 
-                            <button type="button" class="calendar-grid__event-view" (click)="requestView(event)" title="View details for {{ event.title }}"></button>
+                            <button
+                                type="button"
+                                class="calendar-grid__event-view"
+                                (click)="requestView(event)"
+                                [title]="'View details for ' + event.title"
+                            ></button>
                         </div>
 
                         <div class="calendar-grid__event-location">{{ event.location }}</div>

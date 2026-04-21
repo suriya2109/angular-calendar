@@ -1,20 +1,17 @@
-import { CommonModule } from '@angular/common';
+import { DOCUMENT } from '@angular/common';
 import {
+  ChangeDetectionStrategy,
   Component,
   EventEmitter,
   Input,
+  OnChanges,
+  OnDestroy,
   Output,
   SimpleChanges,
-  OnChanges,
   inject,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { CalendarSlot } from '../calendar.models';
-
-type Tag = {
-  label: string;
-  color: string;
-};
 
 type TeamMember = {
   name: string;
@@ -28,6 +25,7 @@ export type EventModalValue = {
   startTime: string;
   endTime: string;
   location: string;
+  category: 'Personal' | 'Work' | 'Health';
   selectedTags: string[];
   selectedMembers: string[];
 };
@@ -35,40 +33,17 @@ export type EventModalValue = {
 @Component({
   standalone: true,
   selector: 'app-event-modal',
-  imports: [CommonModule, ReactiveFormsModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [ReactiveFormsModule],
   templateUrl: './event-modal.html',
-  styleUrls: ['./event-modal.scss'], // ✅ fixed typo (styleUrl → styleUrls)
+  styleUrls: ['./event-modal.scss'],
 })
-export class EventModal implements OnChanges {
+export class EventModal implements OnChanges, OnDestroy {
   private readonly fb = inject(FormBuilder);
+  private readonly document = inject(DOCUMENT);
+  private previousBodyOverflow = '';
 
-  // 🔹 INPUT / OUTPUT
-  @Input() open = false;
-  @Input() value: EventModalValue | null = null;
-  @Input() selectedSlot: CalendarSlot | null = null;
-
-  @Output() closed = new EventEmitter<void>();
-  @Output() saved = new EventEmitter<EventModalValue>();
-
-  // 🔹 STATIC DATA
-  readonly tags: Tag[] = [
-    { label: 'Design', color: 'lavender' },
-    { label: 'Personal project', color: 'sand' },
-    { label: 'Developer task', color: 'sky' },
-  ];
-
-  readonly team: TeamMember[] = [
-    { name: 'Alya', initials: 'A', tone: 'peach' },
-    { name: 'Mika', initials: 'M', tone: 'mint' },
-    { name: 'Noah', initials: 'N', tone: 'slate' },
-  ];
-
-  readonly leftEvents = [
-    { title: 'Design session', time: '07:50 - 09:30', tone: 'gold' },
-    { title: 'Design Review', time: '09:40 - 10:30', tone: 'blue' },
-    { title: 'Onboarding meet', time: '10:50 - 12:00', tone: 'pink' },
-  ];
-
+  readonly tagOptions = ['Design', 'Personal project', 'Developer task'] as const;
   readonly timeOptions = [
     '06:00', '06:30',
     '07:00', '07:30',
@@ -88,76 +63,104 @@ export class EventModal implements OnChanges {
     '21:00', '21:30',
     '22:00', '22:30',
     '23:00', '23:30',
-    '00:00'
+    '00:00',
+  ] as const;
+
+  private readonly baseMembers: TeamMember[] = [
+    { name: 'Alya', initials: 'A', tone: 'peach' },
+    { name: 'Mika', initials: 'M', tone: 'mint' },
+    { name: 'Noah', initials: 'N', tone: 'slate' },
   ];
 
-  // 🔹 DEFAULT VALUE (reusable)
+  @Input() open = false;
+  @Input() value: EventModalValue | null = null;
+  @Input() selectedSlot: CalendarSlot | null = null;
+
+  @Output() closed = new EventEmitter<void>();
+  @Output() saved = new EventEmitter<EventModalValue>();
+
   private readonly defaultValue: EventModalValue = {
     title: '',
     date: '',
     startTime: '06:00',
     endTime: '07:00',
     location: '',
-    selectedTags: [],
+    category: 'Personal',
+    selectedTags: [...this.tagOptions],
     selectedMembers: [],
   };
 
-  // 🔹 FORM
+  team: TeamMember[] = [...this.baseMembers];
+  memberName = '';
+  memberPickerOpen = false;
+  private selectedTags: string[] = [];
+
   readonly form = this.fb.nonNullable.group({
     title: this.fb.nonNullable.control(this.defaultValue.title),
     date: this.fb.nonNullable.control(this.defaultValue.date),
     startTime: this.fb.nonNullable.control(this.defaultValue.startTime),
     endTime: this.fb.nonNullable.control(this.defaultValue.endTime),
     location: this.fb.nonNullable.control(this.defaultValue.location),
-    selectedTags: this.fb.nonNullable.control(this.defaultValue.selectedTags),
-    selectedMembers: this.fb.nonNullable.control(this.defaultValue.selectedMembers),
+    category: this.fb.nonNullable.control(this.defaultValue.category),
+    selectedMembers: this.fb.nonNullable.control<string[]>([]),
   });
 
-  // 🔹 HANDLE INPUT CHANGES
-  ngOnChanges(changes: SimpleChanges) {
-    if (!changes['value'] && !changes['selectedSlot']) return;
-
-    this.form.reset(this.value ?? this.slotToValue(this.selectedSlot) ?? this.defaultValue);
-  }
-
-  // 🔹 HELPERS
-  timeDisplay(time24: string): string {
-    // Convert "06:00" to "6:00 AM", "13:00" to "1:00 PM"
-    const [hours, minutes] = time24.split(':');
-    let hours24 = parseInt(hours, 10);
-    let ampm = 'AM';
-
-    if (hours24 >= 12) {
-      ampm = 'PM';
-      if (hours24 > 12) {
-        hours24 -= 12;
-      }
-    } else if (hours24 === 0) {
-      hours24 = 12;
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['open'] || changes['value'] || changes['selectedSlot']) {
+      this.syncForm();
     }
 
-    return `${hours24}:${minutes} ${ampm}`;
+    if (changes['open']) {
+      this.syncBodyScroll();
+    }
   }
 
-  isTagSelected(label: string): boolean {
-    return this.form.controls.selectedTags.value.includes(label);
+  timeDisplay(time24: string): string {
+    const [hoursPart, minutes] = time24.split(':');
+    const hours = Number(hoursPart);
+    const hours12 = hours % 12 || 12;
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+
+    return `${hours12}:${minutes} ${ampm}`;
   }
 
   isMemberSelected(name: string): boolean {
     return this.form.controls.selectedMembers.value.includes(name);
   }
 
-  toggleTag(label: string) {
-    const current = this.form.controls.selectedTags.value;
-
-    const next = current.includes(label)
-      ? current.filter((item) => item !== label)
-      : [...current, label];
-
-    this.form.controls.selectedTags.setValue(next);
+  isTagSelected(tag: string): boolean {
+    return this.selectedTags.includes(tag);
   }
 
-  toggleMember(name: string) {
+  toggleMemberPicker(): void {
+    this.memberPickerOpen = !this.memberPickerOpen;
+
+    if (!this.memberPickerOpen) {
+      this.memberName = '';
+    }
+  }
+
+  onMemberNameInput(event: Event): void {
+    this.memberName = (event.target as HTMLInputElement).value;
+  }
+
+  addMember(): void {
+    const name = this.memberName.trim();
+    if (!name) {
+      return;
+    }
+
+    const selectedMembers = this.form.controls.selectedMembers.value;
+    if (!selectedMembers.includes(name)) {
+      this.form.controls.selectedMembers.setValue([...selectedMembers, name]);
+    }
+
+    this.ensureTeamMember(name);
+    this.memberName = '';
+    this.memberPickerOpen = false;
+  }
+
+  toggleMember(name: string): void {
     const current = this.form.controls.selectedMembers.value;
 
     const next = current.includes(name)
@@ -167,44 +170,133 @@ export class EventModal implements OnChanges {
     this.form.controls.selectedMembers.setValue(next);
   }
 
-  // 🔹 SUBMIT
-  submit() {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
-    }
-
-    this.saved.emit(this.form.getRawValue());
+  toggleTag(tag: string): void {
+    this.selectedTags = this.selectedTags.includes(tag)
+      ? this.selectedTags.filter((item) => item !== tag)
+      : [...this.selectedTags, tag];
   }
 
-  // 🔹 CLOSE
-  close() {
+  submit(): void {
+    this.saved.emit({
+      ...this.form.getRawValue(),
+      selectedTags: [...this.selectedTags],
+    });
+  }
+
+  close(): void {
     this.closed.emit();
   }
 
-  private slotToValue(slot: CalendarSlot | null): EventModalValue | null {
+  ngOnDestroy(): void {
+    this.restoreBodyScroll();
+  }
+
+  private syncForm(): void {
+    if (!this.open) {
+      return;
+    }
+
+    const nextValue = this.value ?? this.valueFromSlot(this.selectedSlot) ?? this.defaultValue;
+
+    this.selectedTags = nextValue.selectedTags.length > 0 ? [...nextValue.selectedTags] : [...this.tagOptions];
+    this.team = this.buildTeam(nextValue.selectedMembers);
+    this.memberName = '';
+    this.memberPickerOpen = false;
+
+    this.form.reset({
+      title: nextValue.title,
+      date: nextValue.date,
+      startTime: nextValue.startTime,
+      endTime: nextValue.endTime,
+      location: nextValue.location,
+      category: nextValue.category,
+      selectedMembers: [...nextValue.selectedMembers],
+    });
+  }
+
+  private syncBodyScroll(): void {
+    if (this.open) {
+      this.previousBodyOverflow = this.document.body.style.overflow;
+      this.document.body.style.overflow = 'hidden';
+      return;
+    }
+
+    this.restoreBodyScroll();
+  }
+
+  private restoreBodyScroll(): void {
+    this.document.body.style.overflow = this.previousBodyOverflow;
+  }
+
+  private buildTeam(selectedMembers: string[]): TeamMember[] {
+    const team = [...this.baseMembers];
+    const seen = new Set(this.baseMembers.map((member) => member.name));
+
+    for (const name of selectedMembers.map((member) => member.trim()).filter(Boolean)) {
+      if (seen.has(name)) {
+        continue;
+      }
+
+      seen.add(name);
+      team.push(this.createTeamMember(name));
+    }
+
+    return team;
+  }
+
+  private ensureTeamMember(name: string): void {
+    if (!this.team.some((member) => member.name === name)) {
+      this.team = [...this.team, this.createTeamMember(name)];
+    }
+  }
+
+  private createTeamMember(name: string): TeamMember {
+    return {
+      name,
+      initials: this.getInitials(name),
+      tone: this.getTone(name),
+    };
+  }
+
+  private getInitials(name: string): string {
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) {
+      return '?';
+    }
+
+    return parts.slice(0, 2).map((part) => part[0]?.toUpperCase() ?? '').join('');
+  }
+
+  private getTone(name: string): TeamMember['tone'] {
+    const tones: TeamMember['tone'][] = ['peach', 'mint', 'slate'];
+    const hash = [...name].reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    return tones[hash % tones.length];
+  }
+
+  private valueFromSlot(slot: CalendarSlot | null): EventModalValue | null {
     if (!slot) {
       return null;
     }
 
-    const startTime = this.timeLabel24Hour(slot.timeLabel);
-    const endTime = this.addOneHour(startTime);
+    const startTime = this.to24Hour(slot.timeLabel);
 
     return {
       title: '',
       date: slot.dateLabel,
       startTime,
-      endTime,
+      endTime: this.plusOneHour(startTime),
       location: '',
-      selectedTags: [],
+      category: 'Personal',
+      selectedTags: [...this.tagOptions],
       selectedMembers: [],
     };
   }
 
-  private timeLabel24Hour(label: string): string {
-    // Convert "6 am" to "06:00", "1 pm" to "13:00", etc.
+  private to24Hour(label: string): string {
     const match = label.match(/(\d+)\s*(am|pm)/i);
-    if (!match) return '06:00';
+    if (!match) {
+      return '06:00';
+    }
 
     let hours = parseInt(match[1], 10);
     const isPm = match[2].toLowerCase() === 'pm';
@@ -218,10 +310,9 @@ export class EventModal implements OnChanges {
     return `${hours.toString().padStart(2, '0')}:00`;
   }
 
-  private addOneHour(time: string): string {
-    // Convert "06:00" to "07:00"
+  private plusOneHour(time: string): string {
     const [hours, minutes] = time.split(':');
-    const nextHour = (parseInt(hours, 10) + 1).toString().padStart(2, '0');
-    return `${nextHour}:${minutes}`;
+    const nextHour = (parseInt(hours, 10) + 1) % 24;
+    return `${nextHour.toString().padStart(2, '0')}:${minutes}`;
   }
 }

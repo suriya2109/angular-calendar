@@ -58,6 +58,11 @@
 
 .calendar-grid__grid-lines span {
     border-left: 1px solid rgba(15, 23, 42, 0.08);
+    transition: border-color 0.2s ease;
+}
+
+.calendar-grid__grid-line--today {
+    border-left: 2px solid #6366f1 !important;
 }
 
 .calendar-grid__slot-grid {
@@ -96,7 +101,6 @@
     transition: opacity 0.16s ease;
     white-space: nowrap;
     pointer-events: none;
-    user-select: none;
 }
 
 .calendar-grid__slot:hover .calendar-grid__slot-add-event {
@@ -198,14 +202,10 @@
         font-size: 12px;
         line-height: 20px;
     }
-    .calendar-grid__schedule-board {
-        overflow-x: hidden;
-    }
     .calendar-grid__day-headers,
     .calendar-grid__grid-lines,
     .calendar-grid__slot-grid,
     .calendar-grid__event-grid {
-        min-width: auto;
         grid-template-columns: repeat(7, minmax(0, 1fr));
     }
 }
@@ -240,6 +240,7 @@
 }
 
 .calendar-grid__month-day {
+    position: relative;
     border: 1px solid #e2e8f0;
     border-radius: 12px;
     padding: 12px;
@@ -248,10 +249,24 @@
     flex-direction: column;
     gap: 8px;
     background: #ffffff;
+    cursor: default;
     transition: background-color 0.2s ease, border-color 0.2s ease;
     &:hover {
         border-color: #cbd5e1;
         background: #f8fafc;
+    }
+}
+
+.calendar-grid__month-day--clickable {
+    cursor: pointer;
+}
+
+.calendar-grid__month-day--today {
+    border: 2px solid #6366f1;
+    background: rgba(99, 102, 241, 0.04);
+    &:hover {
+        border-color: #6366f1;
+        background: rgba(99, 102, 241, 0.08);
     }
 }
 
@@ -265,10 +280,40 @@
     }
 }
 
+.calendar-grid__month-add {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 2;
+    border: 0;
+    border-radius: 999px;
+    padding: 6px 10px;
+    background: rgba(99, 102, 241, 0.1);
+    color: #4f46e5;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(-2px);
+    transition: opacity 0.16s ease, transform 0.16s ease, background-color 0.16s ease;
+}
+
+.calendar-grid__month-day:hover .calendar-grid__month-add,
+.calendar-grid__month-day:focus-within .calendar-grid__month-add {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.calendar-grid__month-add:hover {
+    background: rgba(99, 102, 241, 0.16);
+}
+
 .calendar-grid__month-day-number {
     font-weight: 700;
     font-size: 16px;
     color: #0f172a;
+    padding-right: 72px;
 }
 
 .calendar-grid__month-day-events {

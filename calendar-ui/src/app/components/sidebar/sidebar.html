@@ -2,12 +2,12 @@
     <div class="sidebar__content" [class.sidebar__content--collapsed]="collapsed()">
         <div class="sidebar__control-row">
             <button class="sidebar__collapse-btn" type="button" (click)="toggleCollapse()" aria-label="Toggle sidebar">
-        @if (!collapsed()) {
-          <span>«</span>
-        } @else {
-          <span>»</span>
-        }
-      </button>
+                @if (!collapsed()) {
+                <span>&laquo;</span>
+                } @else {
+                <span>&raquo;</span>
+                }
+            </button>
         </div>
 
         <section class="sidebar__profile-card">
@@ -20,10 +20,11 @@
                     <div class="sidebar__profile-name">Ram</div>
                     <div class="sidebar__profile-role">Software Engineer</div>
                 </div>
-                <button type="button" class="sidebar__badge-btn" aria-label="Notification" title="notification">
-            <span class="sidebar__badge-number">3</span>
-            <img src="assets/icons/notification.svg" alt="User" width="16" height="16" />
-          </button> }
+                <button type="button" class="sidebar__badge-btn" aria-label="Notifications" title="Notifications">
+                    <span class="sidebar__badge-number">3</span>
+                    <img src="assets/icons/notification.svg" alt="" width="16" height="16" />
+                </button>
+                }
             </div>
         </section>
 
@@ -32,32 +33,33 @@
             <div class="sidebar__panel-header">
                 <div class="sidebar__panel-title">{{ monthLabel() }}</div>
                 <div class="sidebar__panel-nav">
-                    <button class="sidebar__icon-btn" type="button" (click)="prevMonth()">‹</button>
-                    <button class="sidebar__icon-btn" type="button" (click)="nextMonth()">›</button>
+                    <button class="sidebar__icon-btn" type="button" (click)="prevMonth()">&lsaquo;</button>
+                    <button class="sidebar__icon-btn" type="button" (click)="nextMonth()">&rsaquo;</button>
                 </div>
             </div>
 
-            <!-- <div class="sidebar__range-summary">{{ rangeLabel() }}</div>
-
-      <div class="sidebar__range-options">
-        <button class="sidebar__pill sidebar__pill--secondary" [class.sidebar__pill--selected]="rangePreset() === 'today'" (click)="setRangePreset('today')">Today</button>
-        <button class="sidebar__pill sidebar__pill--secondary" [class.sidebar__pill--selected]="rangePreset() === 'week'" (click)="setRangePreset('week')">This week</button>
-        <button class="sidebar__pill sidebar__pill--secondary" [class.sidebar__pill--selected]="rangePreset() === 'month'" (click)="setRangePreset('month')">This month</button>
-        <button class="sidebar__pill sidebar__pill--secondary" [class.sidebar__pill--selected]="rangePreset() === 'next7'" (click)="setRangePreset('next7')">Next 7 days</button>
-      </div> -->
-
             <div class="sidebar__weekday-row">
                 @for (day of weekdays; track $index) {
-                <span>{{ day }}</span> }
+                <span>{{ day }}</span>
+                }
             </div>
 
             <div class="sidebar__dates-grid">
-                @for (date of monthGrid(); track $index) { @if (date === null) {
-                <span class="sidebar__date sidebar__date--empty"></span> } @else {
-                <button class="sidebar__date" type="button" [class.sidebar__date--active]="isSelected(date)" [class.sidebar__date--today]="isToday(date)" [class.sidebar__date--range]="isInRange(date)" [class.sidebar__date--range-start]="isRangeStart(date)" [class.sidebar__date--range-end]="isRangeEnd(date)"
-                    (click)="selectDate(date)">
-                {{ date }}
-              </button> } }
+                @for (date of monthGrid(); track $index) {
+                @if (date === null) {
+                <span class="sidebar__date sidebar__date--empty"></span>
+                } @else {
+                <button
+                    type="button"
+                    class="sidebar__date"
+                    [class.sidebar__date--active]="isSelected(date)"
+                    [class.sidebar__date--today]="isToday(date)"
+                    (click)="selectDate(date)"
+                >
+                    {{ date }}
+                </button>
+                }
+                }
             </div>
         </section>
 
@@ -69,8 +71,8 @@
             <div class="sidebar__event-title">Meet Gabriel at the International Library</div>
             <div class="sidebar__event-block">
                 <div class="sidebar__event-actions">
-                    <button class="sidebar__pill sidebar__pill--secondary">Later</button>
-                    <button class="sidebar__pill sidebar__pill--primary">Details</button>
+                    <button class="sidebar__pill sidebar__pill--secondary" type="button">Later</button>
+                    <button class="sidebar__pill sidebar__pill--primary" type="button">Details</button>
                 </div>
                 <div class="sidebar__event-illustration">
                     <img src="assets/icons/book.svg" alt="Event illustration" width="80" height="80" />
@@ -81,14 +83,14 @@
         <section class="sidebar__panel-block">
             <div class="sidebar__panel-header sidebar__panel-header--compact">
                 <div class="sidebar__panel-title">My Calendars</div>
-                <button type="button" class="sidebar__toggle-btn" (click)="toggleMyCalendars()" [class.sidebar__toggle-btn--expanded]="myCalendarsOpen()">
-            <img
-              src="assets/icons/accordion-arrow.svg"
-              alt="Event illustration"
-              width="24"
-              height="24"
-            />
-          </button>
+                <button
+                    type="button"
+                    class="sidebar__toggle-btn"
+                    (click)="toggleMyCalendars()"
+                    [class.sidebar__toggle-btn--expanded]="myCalendarsOpen()"
+                >
+                    <img src="assets/icons/accordion-arrow.svg" alt="" width="24" height="24" />
+                </button>
             </div>
 
             @if (myCalendarsOpen()) {
@@ -125,14 +127,14 @@
         <section class="sidebar__panel-block">
             <div class="sidebar__panel-header sidebar__panel-header--compact">
                 <div class="sidebar__panel-title">Categories</div>
-                <button type="button" class="sidebar__toggle-btn" (click)="toggleCategories()" [class.sidebar__toggle-btn--expanded]="categoriesOpen()">
-            <img
-              src="assets/icons/accordion-arrow.svg"
-              alt="Event illustration"
-              width="24"
-              height="24"
-            />
-          </button>
+                <button
+                    type="button"
+                    class="sidebar__toggle-btn"
+                    (click)="toggleCategories()"
+                    [class.sidebar__toggle-btn--expanded]="categoriesOpen()"
+                >
+                    <img src="assets/icons/accordion-arrow.svg" alt="" width="24" height="24" />
+                </button>
             </div>
 
             @if (categoriesOpen()) {

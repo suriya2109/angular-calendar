@@ -3,83 +3,112 @@
     <div class="event-modal__backdrop"></div>
 
     <div class="event-modal__shell" (click)="$event.stopPropagation()">
-
-        <!-- FORM -->
         <form class="event-modal__card" [formGroup]="form" (ngSubmit)="submit()">
-
-            <!-- HEADER -->
             <div class="event-modal__header">
                 <label class="event-modal__title-field">
-            <input type="text" formControlName="title" placeholder="Add title" />
-          </label>
+                    <input type="text" formControlName="title" placeholder="Add title" />
+                </label>
 
                 <button type="button" class="event-modal__dismiss" (click)="close()">
-            <img src="assets/icons/close.svg" alt="Close" width="24" height="24" />
-          </button>
+                    <img src="assets/icons/close.svg" alt="Close" width="24" height="24" />
+                </button>
             </div>
 
-            <!-- DATE -->
             <div class="event-modal__field">
                 <img src="assets/icons/date-icon.svg" alt="date" width="24" height="24" />
                 <input type="text" formControlName="date" placeholder="Add date" />
             </div>
 
-            <!-- TIME -->
             <div class="event-modal__field event-modal__field--split">
                 <img src="assets/icons/clock-black.svg" alt="clock" width="24" height="24" />
 
                 <select formControlName="startTime" placeholder="Start time">
-            @for (time of timeOptions; track $index) {
-              <option [value]="time">{{ timeDisplay(time) }}</option>
-            }
-          </select>
+                    @for (time of timeOptions; track $index) {
+                    <option [value]="time">{{ timeDisplay(time) }}</option>
+                    }
+                </select>
 
                 <select formControlName="endTime" placeholder="End time">
-            @for (time of timeOptions; track $index) {
-              <option [value]="time">{{ timeDisplay(time) }}</option>
-            }
-          </select>
+                    @for (time of timeOptions; track $index) {
+                    <option [value]="time">{{ timeDisplay(time) }}</option>
+                    }
+                </select>
             </div>
 
-            <!-- LOCATION -->
             <div class="event-modal__field">
                 <img src="assets/icons/location.svg" alt="location" width="24" height="24" />
                 <input type="text" formControlName="location" placeholder="Add location" />
             </div>
 
-            <!-- TAGS -->
-            <div class="event-modal__tag-list">
-                @for (tag of tags; track tag.label) {
-                <button type="button" class="event-modal__tag" [class.event-modal__tag--selected]="isTagSelected(tag.label)" [class.event-modal__tag--lavender]="tag.color === 'lavender'" [class.event-modal__tag--sand]="tag.color === 'sand'" [class.event-modal__tag--sky]="tag.color === 'sky'"
-                    (click)="toggleTag(tag.label)">
-              {{ tag.label }}
-            </button> }
+            <div class="event-modal__tags">
+                @for (tag of tagOptions; track tag) {
+                <button
+                    type="button"
+                    class="event-modal__tag"
+                    [class.event-modal__tag--selected]="isTagSelected(tag)"
+                    (click)="toggleTag(tag)"
+                    [attr.aria-pressed]="isTagSelected(tag)"
+                >
+                    {{ tag }}
+                </button>
+                }
             </div>
 
-            <!-- MEMBERS -->
-            <div class="event-modal__members">
+            <div class="event-modal__members" aria-label="Event members">
                 @for (member of team; track member.name) {
-                <button type="button" class="event-modal__member" [class.event-modal__member--selected]="isMemberSelected(member.name)" [class.event-modal__member--peach]="member.tone === 'peach'" [class.event-modal__member--mint]="member.tone === 'mint'" [class.event-modal__member--slate]="member.tone === 'slate'"
-                    (click)="toggleMember(member.name)" [attr.aria-pressed]="isMemberSelected(member.name)">
-              {{ member.initials }}
-            </button> }
+                <button
+                    type="button"
+                    class="event-modal__member"
+                    [class.event-modal__member--selected]="isMemberSelected(member.name)"
+                    [class.event-modal__member--peach]="member.tone === 'peach'"
+                    [class.event-modal__member--mint]="member.tone === 'mint'"
+                    [class.event-modal__member--slate]="member.tone === 'slate'"
+                    (click)="toggleMember(member.name)"
+                    [attr.aria-pressed]="isMemberSelected(member.name)"
+                    [attr.aria-label]="member.name"
+                >
+                    <span class="event-modal__member-initials" aria-hidden="true">{{ member.initials }}</span>
+                    <span class="sr-only">{{ member.name }}</span>
+                </button>
+                }
 
-                <button type="button" class="event-modal__member event-modal__member--add">
-            +
-          </button>
+                <button
+                    type="button"
+                    class="event-modal__member event-modal__member--add"
+                    (click)="toggleMemberPicker()"
+                    [attr.aria-expanded]="memberPickerOpen"
+                    aria-label="Add person"
+                >
+                    +
+                </button>
+
+                @if (memberPickerOpen) {
+                <div class="event-modal__member-add-panel">
+                    <input
+                        type="text"
+                        class="event-modal__member-add-input"
+                        [value]="memberName"
+                        (input)="onMemberNameInput($event)"
+                        (keyup.enter)="addMember()"
+                        placeholder="Add person name"
+                        aria-label="Person name"
+                    />
+                    <button type="button" class="event-modal__member-add-button" (click)="addMember()">
+                        Add
+                    </button>
+                </div>
+                }
             </div>
 
-            <!-- FOOTER -->
             <footer class="event-modal__footer">
                 <button type="submit" class="event-modal__save">
-            Add Event
-          </button>
+                    Add Event
+                </button>
 
                 <button type="button" class="event-modal__more">
-            ...
-          </button>
+                    ...
+                </button>
             </footer>
-
         </form>
     </div>
 </section>

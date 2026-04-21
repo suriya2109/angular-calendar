@@ -1,10 +1,16 @@
 <div class="app">
     <div class="app__body">
         <header class="app__mobile-bar">
-            <button type="button" class="app__mobile-menu-button" aria-label="Open menu" (click)="sidebar.toggleMobile()">
-                <span></span>
-                <span></span>
-                <span></span>
+            <button
+                type="button"
+                class="app__mobile-menu-button"
+                [attr.aria-label]="sidebar.mobileOpen() ? 'Close menu' : 'Open menu'"
+                [class.app__mobile-menu-button--open]="sidebar.mobileOpen()"
+                (click)="sidebar.toggleMobile()"
+            >
+                <span class="app__mobile-menu-line app__mobile-menu-line--top"></span>
+                <span class="app__mobile-menu-line app__mobile-menu-line--middle"></span>
+                <span class="app__mobile-menu-line app__mobile-menu-line--bottom"></span>
             </button>
             <div class="app__mobile-title">Calendar</div>
         </header>

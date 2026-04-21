@@ -163,6 +163,17 @@
     &__date-pill--selected:hover {
         color: #0f172a;
     }
+    &__date-pill--today {
+        border: 2px solid #6366f1;
+        background: rgba(99, 102, 241, 0.08);
+    }
+    &__date-pill--today:hover {
+        background: rgba(99, 102, 241, 0.12);
+    }
+    &__date-pill--selected.calendar__date-pill--today {
+        border-color: #ffffff;
+        background: #0f172a;
+    }
     &__day-name {
         font-size: 10px;
         line-height: 18px;
@@ -176,7 +187,7 @@
         font-size: 14px;
         line-height: 22px;
         font-weight: 700;
-        @media(min-width: 992px) {
+        @media(min-width: 1200px) {
             font-size: 32px;
             line-height: 40px;
         }

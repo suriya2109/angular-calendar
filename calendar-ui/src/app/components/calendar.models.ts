@@ -18,6 +18,7 @@ export type CalendarEvent = {
   startTime: string;
   endTime: string;
   location: string;
+  category: 'Personal' | 'Work' | 'Health';
   selectedTags: string[];
   selectedMembers: string[];
   theme: CalendarTheme;

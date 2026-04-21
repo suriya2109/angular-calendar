@@ -7,14 +7,21 @@
         <div class="calendar__actions">
             <div class="calendar__view-toggle">
                 @for (view of views; track view.key) {
-                <button type="button" class="calendar__view-button" [class.calendar__view-button--active]="selectedView() === view.key" (click)="setView(view.key)">
-          {{ view.label }}
-        </button> }
+                <button
+                    type="button"
+                    class="calendar__view-button"
+                    [class.calendar__view-button--active]="selectedView() === view.key"
+                    (click)="setView(view.key)"
+                >
+                    {{ view.label }}
+                </button>
+                }
             </div>
+
             <div class="calendar__nav-group">
-                <button type="button" class="calendar__icon-button" (click)="prev()" aria-label="Previous">‹</button>
+                <button type="button" class="calendar__icon-button" (click)="prev()" aria-label="Previous">&lsaquo;</button>
                 <button type="button" class="calendar__today-button" (click)="gotoToday()">Today</button>
-                <button type="button" class="calendar__icon-button" (click)="next()" aria-label="Next">›</button>
+                <button type="button" class="calendar__icon-button" (click)="next()" aria-label="Next">&rsaquo;</button>
             </div>
         </div>
     </header>
@@ -26,23 +33,43 @@
 
         <div class="calendar__date-pills">
             @if (selectedView() === 'day') {
-            <!-- Day view: show only the selected day -->
             <button type="button" class="calendar__date-pill calendar__date-pill--selected">
-        <span class="calendar__day-name">{{ weekdays[activeDate().getDay()] }}</span>
-        <span class="calendar__day-number">{{ activeDate().getDate() }}</span>
-      </button> } @else if (selectedView() === 'week') {
-            <!-- Week view: show all 7 days -->
+                <span class="calendar__day-name">{{ weekdayLabel(activeDate()) }}</span>
+                <span class="calendar__day-number">{{ activeDate().getDate() }}</span>
+            </button>
+            } @else if (selectedView() === 'week') {
             @for (day of weekDates(); track $index) {
-            <button type="button" class="calendar__date-pill" [class.calendar__date-pill--selected]="isSelected(day)" (click)="selectDate(day)">
-        <span class="calendar__day-name">{{ weekdays[day.getDay()] }}</span>
-        <span class="calendar__day-number">{{ day.getDate() }}</span>
-      </button> } } @else {
-            <!-- Month view: show month label only -->
-            <span class="calendar__month-label">{{ title() }}</span> }
+            <button
+                type="button"
+                class="calendar__date-pill"
+                [class.calendar__date-pill--selected]="isSelected(day)"
+                (click)="selectDate(day)"
+            >
+                <span class="calendar__day-name">{{ weekdayLabel(day) }}</span>
+                <span class="calendar__day-number">{{ day.getDate() }}</span>
+            </button>
+            }
+            } @else {
+            <span class="calendar__month-label">{{ title() }}</span>
+            }
         </div>
     </div>
 
-    <app-calendar-grid [events]="events()" [weekDates]="weekDates()" [selectedSlot]="selectedSlot()" [selectedView]="selectedView()" [activeDate]="activeDate()" (slotSelected)="onSlotSelected($event)" (viewRequested)="onViewRequested($event)"></app-calendar-grid>
+    <app-calendar-grid
+        [events]="events()"
+        [weekDates]="weekDates()"
+        [selectedSlot]="selectedSlot()"
+        [selectedView]="selectedView()"
+        [activeDate]="activeDate()"
+        (slotSelected)="onSlotSelected($event)"
+        (viewRequested)="onViewRequested($event)"
+    ></app-calendar-grid>
 
-    <app-event-modal [open]="isModalOpen()" [value]="modalValue()" [selectedSlot]="selectedSlot()" (closed)="closeModal()" (saved)="saveEvent($event)"></app-event-modal>
+    <app-event-modal
+        [open]="isModalOpen()"
+        [value]="modalValue()"
+        [selectedSlot]="selectedSlot()"
+        (closed)="closeModal()"
+        (saved)="saveEvent($event)"
+    ></app-event-modal>
 </section>
