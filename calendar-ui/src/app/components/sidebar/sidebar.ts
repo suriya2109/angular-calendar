@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
+import { DateSyncService } from '../../services/date-sync.service';
 
 const WEEKDAYS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -13,6 +14,7 @@ const MONTH_NAMES = ['January','February','March','April','May','June','July','A
   host: { ngSkipHydration: 'true' },
 })
 export class Sidebar {
+  private dateSyncService = inject(DateSyncService);
   collapsed = signal(false);
   mobileOpen = signal(false);
   selectedDate = signal(new Date());
@@ -163,6 +165,7 @@ export class Sidebar {
     }
 
     this.selectedDate.set(date);
+    this.dateSyncService.setSelectedDate(date);
     this.rangePreset.set('single');
     this.closeMobile();
   }

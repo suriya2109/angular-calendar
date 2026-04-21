@@ -78,6 +78,8 @@
                 line-height: 32px;
                 align-items: center;
                 justify-content: center;
+                position: relative;
+                top: -2px;
             }
         }
     }
@@ -158,10 +160,6 @@
         align-items: center;
         justify-content: space-between;
         gap: 10px;
-        margin-bottom: 16px;
-    }
-    &__panel-header--compact {
-        margin-bottom: 10px;
     }
     &__panel-title {
         font-size: 0.95rem;
@@ -171,6 +169,17 @@
     &__event-actions {
         display: flex;
         gap: 10px;
+    }
+    &__categoriesList {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-top: 16px;
+    }
+    &__categoryGroup {
+        display: flex;
+        gap: 8px;
+        align-items: center;
     }
     &__range-summary {
         margin-bottom: 10px;
@@ -319,6 +328,15 @@
     &__category-row {
         display: grid;
         gap: 12px;
+        padding: 0;
+        margin: 0;
+    }
+    &__checkbox-group {
+        margin-top: 12px;
+    }
+    &__checkboxGroup {
+        display: flex;
+        gap: 8px;
     }
     &__checkbox-row {
         display: grid;

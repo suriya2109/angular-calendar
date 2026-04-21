@@ -1,8 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { CalendarGrid } from '../calendar-grid/calendar-grid';
 import { CalendarEvent, CalendarSlot, CalendarTheme } from '../calendar.models';
 import { EventModal, EventModalValue } from '../event-modal/event-modal';
+import { DateSyncService } from '../../services/date-sync.service';
 
 const VIEW_OPTIONS = [
   { key: 'month', label: 'Month' },
@@ -149,6 +150,8 @@ function addOneHour(time: string): string {
   host: { ngSkipHydration: 'true' },
 })
 export class Calendar {
+  private dateSyncService = inject(DateSyncService);
+
   selectedView = signal<'month' | 'week' | 'day'>('week');
   activeDate = signal(new Date());
 
@@ -161,6 +164,14 @@ export class Calendar {
 
   views = VIEW_OPTIONS;
   weekdays = WEEKDAYS;
+
+  constructor() {
+    // Sync with the service's selected date
+    effect(() => {
+      const serviceDate = this.dateSyncService.selectedDate();
+      this.activeDate.set(cloneDate(serviceDate));
+    });
+  }
 
   title = computed(() => {
     const date = this.activeDate();
@@ -196,7 +207,9 @@ export class Calendar {
   }
 
   selectDate(date: Date) {
-    this.activeDate.set(cloneDate(date));
+    const clonedDate = cloneDate(date);
+    this.activeDate.set(clonedDate);
+    this.dateSyncService.setSelectedDate(clonedDate);
   }
 
   prev() {
