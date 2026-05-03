@@ -1,5 +1,7 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, effect, inject, signal } from '@angular/core';
 import { CalendarEvent, CalendarSlot } from '../calendar.models';
+import { TimeZoneService } from '../../services/timezone.service';
+import { formatDateKey, formatDateLabel, isSameCalendarDay } from '../../services/timezone-format';
 
 @Component({
   standalone: true,
@@ -9,6 +11,7 @@ import { CalendarEvent, CalendarSlot } from '../calendar.models';
   styleUrls: ['./calendar-grid.scss'],
 })
 export class CalendarGrid implements OnChanges {
+  private readonly timeZoneService = inject(TimeZoneService);
   @Input() events: CalendarEvent[] = [];
   @Input() weekDates: Date[] = [];
   @Input() selectedSlot: CalendarSlot | null = null;
@@ -41,23 +44,59 @@ export class CalendarGrid implements OnChanges {
 
   readonly slots = signal<CalendarSlot[]>([]);
   readonly monthDays = signal<(Date | null)[]>([]);
+  readonly displayedEvents = signal<CalendarEvent[]>([]);
+  readonly maxVisibleMonthEvents = 3;
+  readonly expandedMonthDayKey = signal<string | null>(null);
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes['weekDates'] || changes['selectedView'] || changes['activeDate']) {
+  constructor() {
+    effect(() => {
+      this.timeZoneService.selectedTimeZone();
       this.slots.set(this.buildSlots());
       this.monthDays.set(this.buildMonthDays());
+      this.displayedEvents.set(this.buildDisplayedEvents());
+      this.expandedMonthDayKey.set(null);
+    });
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['weekDates'] || changes['selectedView'] || changes['activeDate'] || changes['events']) {
+      this.slots.set(this.buildSlots());
+      this.monthDays.set(this.buildMonthDays());
+      this.displayedEvents.set(this.buildDisplayedEvents());
+      this.expandedMonthDayKey.set(null);
     }
   }
 
   getMonthDayEvents(day: Date | null): CalendarEvent[] {
-    return day ? this.events.filter((event) => event.date === this.formatDateLabel(day)) : [];
+    return day
+      ? [...this.events.filter((event) => this.eventMatchesDay(event, day))].sort((left, right) => {
+          const leftMinutes = this.timeToMinutes(left.startTime);
+          const rightMinutes = this.timeToMinutes(right.startTime);
+          if (leftMinutes !== rightMinutes) {
+            return leftMinutes - rightMinutes;
+          }
+          return left.title.localeCompare(right.title);
+        })
+      : [];
+  }
+
+  getMonthEventTooltip(event: CalendarEvent): string {
+    return `${event.date} - ${event.startTime} to ${event.endTime}`;
+  }
+
+  isMonthDayExpanded(day: Date): boolean {
+    return this.expandedMonthDayKey() === this.monthDayKey(day);
+  }
+
+  toggleMonthDayEvents(day: Date): void {
+    const key = this.monthDayKey(day);
+    this.expandedMonthDayKey.update((current) => (current === key ? null : key));
   }
 
   private buildMonthDays(): (Date | null)[] {
     const year = this.activeDate.getFullYear();
     const month = this.activeDate.getMonth();
     const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
     const startDate = new Date(firstDay);
     startDate.setDate(startDate.getDate() - firstDay.getDay());
 
@@ -77,7 +116,7 @@ export class CalendarGrid implements OnChanges {
 
   isToday(date: Date): boolean {
     const today = new Date();
-    return date.getFullYear() === today.getFullYear() && date.getMonth() === today.getMonth() && date.getDate() === today.getDate();
+    return isSameCalendarDay(date, today, this.timeZoneService.selectedTimeZone());
   }
 
   isTodayByIndex(dayIndex: number): boolean {
@@ -85,11 +124,18 @@ export class CalendarGrid implements OnChanges {
   }
 
   selectSlot(slot: CalendarSlot): void {
+    this.expandedMonthDayKey.set(null);
     this.slotSelected.emit(slot);
   }
 
   requestView(event: CalendarEvent): void {
+    this.expandedMonthDayKey.set(null);
     this.viewRequested.emit(event);
+  }
+
+  eventGridColumn(event: CalendarEvent): string {
+    const dayIndex = this.resolveEventDayIndex(event);
+    return String(dayIndex + 1);
   }
 
   getMemberNamesLabel(event: CalendarEvent): string {
@@ -119,6 +165,7 @@ export class CalendarGrid implements OnChanges {
           timeIndex,
           dayLabel: this.weekdays[dayIndex],
           timeLabel,
+          dateKey: this.formatDateKey(date),
           dateLabel: this.formatDateLabel(date),
           gridColumn: String(dayIndex + 1),
           gridRow: String(timeIndex + 1),
@@ -140,6 +187,7 @@ export class CalendarGrid implements OnChanges {
       timeIndex: 0,
       dayLabel: this.weekdays[dayIndex],
       timeLabel: '6 am',
+      dateKey: this.formatDateKey(day),
       dateLabel: this.formatDateLabel(day),
       gridColumn: String(dayIndex + 1),
       gridRow: '1',
@@ -148,10 +196,59 @@ export class CalendarGrid implements OnChanges {
   }
 
   private formatDateLabel(date: Date): string {
-    return date.toLocaleDateString(undefined, {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
+    return formatDateLabel(date, this.timeZoneService.selectedTimeZone());
+  }
+
+  private formatDateKey(date: Date): string {
+    return formatDateKey(date, this.timeZoneService.selectedTimeZone());
+  }
+
+  private buildDisplayedEvents(): CalendarEvent[] {
+    if (this.selectedView === 'month') {
+      return this.events;
+    }
+
+    const visibleDates = new Set(this.weekDates.map((date) => this.formatDateKey(date)));
+    const activeDateKey = this.formatDateKey(this.activeDate);
+
+    return this.events.filter((event) => {
+      if (this.selectedView === 'day') {
+        return this.eventKey(event) === activeDateKey;
+      }
+
+      return visibleDates.has(this.eventKey(event));
     });
+  }
+
+  monthDayLabel(day: Date): string {
+    return this.formatDateLabel(day);
+  }
+
+  private timeToMinutes(time: string): number {
+    const [hours, minutes] = time.split(':').map((part) => Number(part));
+    return hours * 60 + minutes;
+  }
+
+  private monthDayKey(date: Date): string {
+    return this.formatDateKey(date);
+  }
+
+  private eventKey(event: CalendarEvent): string {
+    return event.dateKey || event.date;
+  }
+
+  private eventMatchesDay(event: CalendarEvent, day: Date): boolean {
+    const dayKey = this.formatDateKey(day);
+    return this.eventKey(event) === dayKey || event.date === this.formatDateLabel(day);
+  }
+
+  private resolveEventDayIndex(event: CalendarEvent): number {
+    if (this.selectedView === 'day') {
+      return 0;
+    }
+
+    const eventKey = this.eventKey(event);
+    const dayIndex = this.weekDates.findIndex((date) => this.formatDateKey(date) === eventKey);
+    return dayIndex >= 0 ? dayIndex : Number(event.gridColumn) - 1;
   }
 }

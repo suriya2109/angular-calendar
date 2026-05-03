@@ -176,6 +176,31 @@
         font-size: 0.95rem;
         font-weight: 700;
     }
+    &__timezone-row {
+        display: grid;
+        gap: 8px;
+        margin: 14px 0 12px;
+    }
+    &__timezone-label {
+        font-size: 0.74rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: rgba(255, 255, 255, 0.58);
+    }
+    &__timezone-select {
+        width: 100%;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.05);
+        color: #fff;
+        padding: 10px 12px;
+        outline: none;
+        cursor: pointer;
+    }
+    &__timezone-select:focus {
+        border-color: rgba(124, 95, 255, 0.9);
+        box-shadow: 0 0 0 3px rgba(124, 95, 255, 0.18);
+    }
     &__panel-nav,
     &__event-actions {
         display: flex;
@@ -191,6 +216,24 @@
         display: flex;
         gap: 8px;
         align-items: center;
+        min-width: 0;
+        flex: 1;
+    }
+    &__category-copy {
+        display: grid;
+        gap: 2px;
+        min-width: 0;
+    }
+    &__category-name {
+        font-size: 0.95rem;
+        font-weight: 600;
+    }
+    &__category-title {
+        font-size: 0.72rem;
+        color: rgba(255, 255, 255, 0.62);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
     &__range-summary {
         margin-bottom: 10px;
@@ -392,9 +435,9 @@
         font-size: 0.75rem;
     }
     &__category-row {
-        display: flex;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(72px, 108px);
         align-items: center;
-        justify-content: space-between;
         gap: 12px;
     }
     &__category-dot {
@@ -412,19 +455,35 @@
     &__category-dot--health {
         background: #34d399;
     }
-    &__category-bar {
-        width: 64px;
-        height: 6px;
+    &__category-progress {
+        width: 100%;
+        height: 8px;
         border-radius: 999px;
-        display: inline-block;
+        background: rgba(255, 255, 255, 0.08);
+        overflow: hidden;
     }
-    &__category-bar--personal {
+    &__category-progress-fill {
+        display: block;
+        height: 100%;
+        border-radius: inherit;
+        min-width: 0;
+    }
+    &__category-progress-fill--personal {
+        background: linear-gradient(90deg, #7e5dff, #a78bfa);
+    }
+    &__category-progress-fill--work {
+        background: linear-gradient(90deg, #38bdf8, #60a5fa);
+    }
+    &__category-progress-fill--health {
+        background: linear-gradient(90deg, #34d399, #6ee7b7);
+    }
+    &__category-dot--personal {
         background: #7e5dff;
     }
-    &__category-bar--work {
+    &__category-dot--work {
         background: #38bdf8;
     }
-    &__category-bar--health {
+    &__category-dot--health {
         background: #34d399;
     }
     &__backdrop {

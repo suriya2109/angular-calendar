@@ -1,10 +1,12 @@
 export type CalendarTheme = 'purple' | 'green' | 'blue' | 'yellow' | 'pink' | 'violet';
+export type CalendarCategory = 'Personal' | 'Work' | 'Health';
 
 export type CalendarSlot = {
   dayIndex: number;
   timeIndex: number;
   dayLabel: string;
   timeLabel: string;
+  dateKey: string;
   dateLabel: string;
   gridColumn: string;
   gridRow: string;
@@ -14,11 +16,12 @@ export type CalendarSlot = {
 export type CalendarEvent = {
   id: number;
   title: string;
+  dateKey: string;
   date: string;
   startTime: string;
   endTime: string;
   location: string;
-  category: 'Personal' | 'Work' | 'Health';
+  category: CalendarCategory;
   selectedTags: string[];
   selectedMembers: string[];
   theme: CalendarTheme;

@@ -1,21 +1,11 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
+import { CalendarCategory } from '../calendar.models';
+import { CalendarEventsService } from '../../services/calendar-events.service';
 import { DateSyncService } from '../../services/date-sync.service';
+import { TimeZoneService } from '../../services/timezone.service';
+import { CalendarTimeZone, formatMonthLabel, isSameCalendarDay } from '../../services/timezone-format';
 
 const WEEKDAYS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'] as const;
-const MONTH_NAMES = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
-] as const;
 
 function cloneDate(date: Date): Date {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -29,12 +19,8 @@ function shiftMonth(date: Date, offset: number): Date {
   return new Date(date.getFullYear(), date.getMonth() + offset, 1);
 }
 
-function isSameDay(left: Date, right: Date): boolean {
-  return (
-    left.getFullYear() === right.getFullYear() &&
-    left.getMonth() === right.getMonth() &&
-    left.getDate() === right.getDate()
-  );
+function shiftYear(date: Date, offset: number): Date {
+  return new Date(date.getFullYear() + offset, date.getMonth(), 1);
 }
 
 @Component({
@@ -47,6 +33,8 @@ function isSameDay(left: Date, right: Date): boolean {
 })
 export class Sidebar {
   private dateSyncService = inject(DateSyncService);
+  private calendarEventsService = inject(CalendarEventsService);
+  private timeZoneService = inject(TimeZoneService);
   readonly collapsed = signal(false);
   readonly mobileOpen = signal(false);
   readonly selectedDate = signal(cloneDate(new Date()));
@@ -54,10 +42,13 @@ export class Sidebar {
   readonly myCalendarsOpen = signal(true);
   readonly categoriesOpen = signal(true);
   readonly weekdays = WEEKDAYS;
+  readonly categories = this.calendarEventsService.categories;
+  readonly timeZoneOptions = this.timeZoneService.timeZoneOptions;
+  readonly selectedTimeZone = this.timeZoneService.selectedTimeZone;
 
   readonly monthLabel = computed(() => {
     const monthDate = this.activeMonthDate();
-    return `${MONTH_NAMES[monthDate.getMonth()]} ${monthDate.getFullYear()}`;
+    return formatMonthLabel(monthDate, this.selectedTimeZone());
   });
 
   readonly monthGrid = computed(() => {
@@ -72,6 +63,35 @@ export class Sidebar {
       ...Array.from({ length: daysInMonth }, (_, index) => index + 1),
     ] as Array<number | null>;
   });
+
+  readonly categoryStats = computed(() => {
+    const events = this.calendarEventsService.events();
+    const total = events.length;
+
+    return this.categories.map((category) => {
+      const categoryEvents = events.filter((event) => event.category === category);
+      const count = categoryEvents.length;
+      const percentage = total > 0 ? Math.max(count > 0 ? 12 : 0, (count / total) * 100) : 0;
+      return {
+        category,
+        count,
+        percentage,
+        latestTitle: categoryEvents[0]?.title ?? 'No events yet',
+      };
+    });
+  });
+
+  isCalendarVisible(category: CalendarCategory): boolean {
+    return this.calendarEventsService.isCategoryVisible(category);
+  }
+
+  selectCalendar(category: CalendarCategory): void {
+    this.calendarEventsService.toggleCategoryVisibility(category);
+  }
+
+  setTimeZone(timeZone: CalendarTimeZone): void {
+    this.timeZoneService.setTimeZone(timeZone);
+  }
 
   constructor() {
     effect(() => {
@@ -101,6 +121,14 @@ export class Sidebar {
     this.activeMonthDate.set(shiftMonth(this.activeMonthDate(), 1));
   }
 
+  prevYear(): void {
+    this.activeMonthDate.set(shiftYear(this.activeMonthDate(), -1));
+  }
+
+  nextYear(): void {
+    this.activeMonthDate.set(shiftYear(this.activeMonthDate(), 1));
+  }
+
   selectDate(day: number): void {
     const date = new Date(this.activeMonthDate().getFullYear(), this.activeMonthDate().getMonth(), day);
     this.selectedDate.set(date);
@@ -110,12 +138,12 @@ export class Sidebar {
   }
 
   isSelected(day: number): boolean {
-    return isSameDay(this.selectedDate(), this.dateFor(day));
+    return isSameCalendarDay(this.selectedDate(), this.dateFor(day), this.selectedTimeZone());
   }
 
   isToday(day: number): boolean {
     const today = new Date();
-    return isSameDay(today, this.dateFor(day));
+    return isSameCalendarDay(today, this.dateFor(day), this.selectedTimeZone());
   }
 
   toggleMyCalendars(): void {

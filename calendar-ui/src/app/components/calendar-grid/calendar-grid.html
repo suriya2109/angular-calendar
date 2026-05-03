@@ -15,9 +15,14 @@
                     [class.calendar-grid__month-day--empty]="!day"
                     [class.calendar-grid__month-day--today]="day && isToday(day)"
                     [class.calendar-grid__month-day--clickable]="day"
+                    [class.calendar-grid__month-day--expanded]="day && isMonthDayExpanded(day)"
                     (click)="day && selectMonthDay(day)"
                 >
                     @if (day) {
+                    @let dayEvents = getMonthDayEvents(day);
+                    @let hiddenCount = dayEvents.length - maxVisibleMonthEvents;
+                    @let isExpanded = isMonthDayExpanded(day);
+
                     <button
                         type="button"
                         class="calendar-grid__month-add"
@@ -31,8 +36,9 @@
                     <div class="calendar-grid__month-day-number">{{ day.getDate() }}</div>
 
                     <div class="calendar-grid__month-day-events">
-                        @for (event of getMonthDayEvents(day); track event.id) {
-                        <div
+                        @for (event of dayEvents.slice(0, maxVisibleMonthEvents); track event.id) {
+                        <button
+                            type="button"
                             class="calendar-grid__month-event"
                             [class.calendar-grid__month-event--purple]="event.theme === 'purple'"
                             [class.calendar-grid__month-event--green]="event.theme === 'green'"
@@ -41,12 +47,67 @@
                             [class.calendar-grid__month-event--pink]="event.theme === 'pink'"
                             [class.calendar-grid__month-event--violet]="event.theme === 'violet'"
                             (click)="$event.stopPropagation(); requestView(event)"
-                            [title]="event.title"
+                            [attr.title]="getMonthEventTooltip(event)"
+                            [attr.aria-label]="getMonthEventTooltip(event)"
                         >
-                            {{ event.title }}
-                        </div>
+                            <span class="calendar-grid__month-event-title">{{ event.title }}</span>
+                        </button>
+                        }
+
+                        @if (hiddenCount > 0) {
+                        <button
+                            type="button"
+                            class="calendar-grid__month-event calendar-grid__month-event--more"
+                            (click)="$event.stopPropagation(); toggleMonthDayEvents(day)"
+                            [attr.title]="isExpanded ? 'Hide events' : hiddenCount + ' more event(s)'"
+                            [attr.aria-label]="isExpanded ? 'Hide events' : hiddenCount + ' more event(s)'"
+                            [attr.aria-expanded]="isExpanded"
+                        >
+                            {{ isExpanded ? 'Hide' : '+' + hiddenCount + ' more' }}
+                        </button>
                         }
                     </div>
+
+                    @if (isExpanded) {
+                    <div class="calendar-grid__month-popover" (click)="$event.stopPropagation()" role="dialog" [attr.aria-label]="'All events on ' + monthDayLabel(day)">
+                        <div class="calendar-grid__month-popover-header">
+                            <div>
+                                <div class="calendar-grid__month-popover-date">{{ monthDayLabel(day) }}</div>
+                                <div class="calendar-grid__month-popover-subtitle">{{ dayEvents.length }} event(s)</div>
+                            </div>
+
+                            <button
+                                type="button"
+                                class="calendar-grid__month-popover-close"
+                                (click)="$event.stopPropagation(); toggleMonthDayEvents(day)"
+                                aria-label="Close event list"
+                            >
+                                Close
+                            </button>
+                        </div>
+
+                        <div class="calendar-grid__month-popover-list">
+                            @for (event of dayEvents; track event.id) {
+                            <button
+                                type="button"
+                                class="calendar-grid__month-popover-event"
+                                [class.calendar-grid__month-popover-event--purple]="event.theme === 'purple'"
+                                [class.calendar-grid__month-popover-event--green]="event.theme === 'green'"
+                                [class.calendar-grid__month-popover-event--blue]="event.theme === 'blue'"
+                                [class.calendar-grid__month-popover-event--yellow]="event.theme === 'yellow'"
+                                [class.calendar-grid__month-popover-event--pink]="event.theme === 'pink'"
+                                [class.calendar-grid__month-popover-event--violet]="event.theme === 'violet'"
+                                (click)="$event.stopPropagation(); requestView(event)"
+                                [attr.title]="getMonthEventTooltip(event)"
+                                [attr.aria-label]="getMonthEventTooltip(event)"
+                            >
+                                <span class="calendar-grid__month-popover-event-time">{{ event.startTime }} - {{ event.endTime }}</span>
+                                <span class="calendar-grid__month-popover-event-title">{{ event.title }}</span>
+                            </button>
+                            }
+                        </div>
+                    </div>
+                    }
                     }
                 </div>
                 }
@@ -85,7 +146,7 @@
                 </div>
 
                 <div class="calendar-grid__event-grid">
-                    @for (event of events; track event.id) {
+                    @for (event of displayedEvents(); track event.id) {
                     <article
                         class="calendar-grid__event-card"
                         [class.calendar-grid__event-card--purple]="event.theme === 'purple'"
@@ -94,7 +155,7 @@
                         [class.calendar-grid__event-card--yellow]="event.theme === 'yellow'"
                         [class.calendar-grid__event-card--pink]="event.theme === 'pink'"
                         [class.calendar-grid__event-card--violet]="event.theme === 'violet'"
-                        [style.gridColumn]="event.gridColumn"
+                        [style.gridColumn]="eventGridColumn(event)"
                         [style.gridRow]="event.gridRow"
                     >
                         <div class="calendar-grid__event-card-head">

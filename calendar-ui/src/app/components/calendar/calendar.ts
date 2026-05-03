@@ -3,6 +3,9 @@ import { CalendarGrid } from '../calendar-grid/calendar-grid';
 import { CalendarEvent, CalendarSlot, CalendarTheme } from '../calendar.models';
 import { EventModal, EventModalValue } from '../event-modal/event-modal';
 import { DateSyncService } from '../../services/date-sync.service';
+import { CalendarEventsService } from '../../services/calendar-events.service';
+import { TimeZoneService } from '../../services/timezone.service';
+import { formatDateKey, formatDateLabel as formatDateLabelInZone, formatMonthLabel, formatWeekdayLabel, isSameCalendarDay } from '../../services/timezone-format';
 
 type CalendarView = 'month' | 'week' | 'day';
 
@@ -12,20 +15,6 @@ const VIEW_OPTIONS = [
   { key: 'day', label: 'Day' },
 ] as const;
 
-const MONTH_NAMES = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
-] as const;
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as const;
 const DEFAULT_SLOTS = [
   { gridColumn: '7', gridRow: '1 / span 2' },
@@ -33,79 +22,6 @@ const DEFAULT_SLOTS = [
   { gridColumn: '2', gridRow: '4 / span 2' },
   { gridColumn: '4', gridRow: '6 / span 2' },
 ] as const;
-
-const INITIAL_EVENTS: CalendarEvent[] = [
-  {
-    id: 1,
-    title: 'Booking taxi app',
-    date: 'Monday, 17 June',
-    startTime: '06:00',
-    endTime: '07:30',
-    location: 'North Wing Studio',
-    category: 'Work',
-    selectedTags: ['Design', 'Developer task'],
-    selectedMembers: ['Alya', 'Mika'],
-    theme: 'purple',
-    gridColumn: '1',
-    gridRow: '1 / span 2',
-  },
-  {
-    id: 2,
-    title: 'Design onboarding',
-    date: 'Monday, 17 June',
-    startTime: '06:00',
-    endTime: '07:10',
-    location: 'Remote',
-    category: 'Personal',
-    selectedTags: ['Personal project'],
-    selectedMembers: ['Alya', 'Noah'],
-    theme: 'green',
-    gridColumn: '4',
-    gridRow: '2 / span 2',
-  },
-  {
-    id: 3,
-    title: 'Development meet',
-    date: 'Monday, 17 June',
-    startTime: '08:40',
-    endTime: '10:00',
-    location: 'Main board room',
-    category: 'Work',
-    selectedTags: ['Developer task'],
-    selectedMembers: ['Mika', 'Noah'],
-    theme: 'blue',
-    gridColumn: '1',
-    gridRow: '4 / span 3',
-  },
-  {
-    id: 4,
-    title: 'Design session',
-    date: 'Tuesday, 18 December',
-    startTime: '07:50',
-    endTime: '09:30',
-    location: 'Park Lane Office',
-    category: 'Work',
-    selectedTags: ['Design', 'Personal project'],
-    selectedMembers: ['Alya', 'Mika', 'Noah'],
-    theme: 'yellow',
-    gridColumn: '3',
-    gridRow: '5 / span 4',
-  },
-  {
-    id: 5,
-    title: 'Design our website',
-    date: 'Wednesday, 19 June',
-    startTime: '08:30',
-    endTime: '10:50',
-    location: 'Creative studio',
-    category: 'Personal',
-    selectedTags: ['Design'],
-    selectedMembers: ['Alya'],
-    theme: 'pink',
-    gridColumn: '6',
-    gridRow: '5 / span 3',
-  },
-];
 
 const EMPTY_EVENT: EventModalValue = {
   title: '',
@@ -176,11 +92,33 @@ function addOneHour(time: string): string {
 })
 export class Calendar {
   private dateSyncService = inject(DateSyncService);
+  private calendarEventsService = inject(CalendarEventsService);
+  private timeZoneService = inject(TimeZoneService);
 
   readonly selectedView = signal<CalendarView>('week');
   readonly activeDate = signal(new Date());
+  readonly selectedTimeZone = this.timeZoneService.selectedTimeZone;
 
-  readonly events = signal<CalendarEvent[]>(INITIAL_EVENTS);
+  readonly events = this.calendarEventsService.events;
+  readonly filteredEvents = computed(() => {
+    const visibleCategories = this.calendarEventsService.visibleCategories();
+    return this.events().filter((event) => visibleCategories[event.category]);
+  });
+  readonly visibleEvents = computed(() => {
+    const events = this.filteredEvents();
+    const view = this.selectedView();
+
+    if (view === 'month') {
+      return events;
+    }
+
+    if (view === 'day') {
+      const activeDateKey = this.formatDateKey(this.activeDate());
+      return events.filter((event) => this.eventDateKey(event) === activeDateKey);
+    }
+
+    return events;
+  });
   readonly selectedSlot = signal<CalendarSlot | null>(null);
   readonly isModalOpen = signal(false);
   readonly editingEvent = signal<CalendarEvent | null>(null);
@@ -198,7 +136,7 @@ export class Calendar {
 
   title = computed(() => {
     const date = this.activeDate();
-    return `${MONTH_NAMES[date.getMonth()]}, ${date.getFullYear()}`;
+    return formatMonthLabel(date, this.selectedTimeZone());
   });
 
   weekDates = computed(() => {
@@ -213,7 +151,7 @@ export class Calendar {
   });
 
   weekdayLabel(date: Date): string {
-    return this.weekdays[(date.getDay() + 6) % 7];
+    return formatWeekdayLabel(date, this.selectedTimeZone());
   }
 
   setView(view: CalendarView): void {
@@ -238,10 +176,11 @@ export class Calendar {
 
   isSelected(date: Date): boolean {
     const active = this.activeDate();
-    return date.getTime() === active.getTime();
+    return isSameCalendarDay(date, active, this.selectedTimeZone());
   }
 
   onSlotSelected(slot: CalendarSlot): void {
+    this.syncActiveDateFromKey(slot.dateKey);
     this.selectedSlot.set(slot);
     this.editingEvent.set(null);
     this.modalValue.set(this.buildValueFromSlot(slot));
@@ -249,6 +188,7 @@ export class Calendar {
   }
 
   onViewRequested(event: CalendarEvent): void {
+    this.syncActiveDateFromKey(event.dateKey);
     this.editingEvent.set(event);
     this.selectedSlot.set(this.slotFromEvent(event));
     this.modalValue.set(this.eventToValue(event));
@@ -278,6 +218,7 @@ export class Calendar {
     return {
       id,
       ...value,
+      dateKey: position.dateKey,
       theme: this.themeForIndex(id),
       gridColumn: position.gridColumn,
       gridRow: position.eventGridRow,
@@ -341,7 +282,7 @@ export class Calendar {
   }
 
   private slotFromEvent(event: CalendarEvent): CalendarSlot {
-    const dayIndex = Number(event.gridColumn) - 1;
+    const dayIndex = this.resolveEventDayIndex(event);
     const timeIndex = Number(event.gridRow.split(' ')[0]) - 1;
     const weekDates = this.weekDates();
     const date = weekDates[dayIndex] ?? this.activeDate();
@@ -351,11 +292,25 @@ export class Calendar {
       timeIndex,
       dayLabel: this.weekdays[dayIndex] ?? 'Mon',
       timeLabel: event.startTime,
-      dateLabel: formatDateLabel(date),
+      dateKey: this.formatDateKey(date),
+      dateLabel: formatDateLabelInZone(date, this.selectedTimeZone()),
       gridColumn: event.gridColumn,
       gridRow: event.gridRow,
       eventGridRow: event.gridRow,
     };
+  }
+
+  private resolveEventDayIndex(event: CalendarEvent): number {
+    const dates = this.weekDates();
+    const eventKey = event.dateKey;
+    const index = eventKey ? dates.findIndex((date) => this.formatDateKey(date) === eventKey) : -1;
+
+    if (index >= 0) {
+      return index;
+    }
+
+    const fallbackIndex = Number(event.gridColumn) - 1;
+    return Number.isFinite(fallbackIndex) && fallbackIndex >= 0 ? fallbackIndex : 0;
   }
 
   private defaultSlotForIndex(): CalendarSlot {
@@ -366,7 +321,8 @@ export class Calendar {
       timeIndex: Number(slot.gridRow.split(' ')[0]) - 1,
       dayLabel: this.weekdays[Number(slot.gridColumn) - 1] ?? 'Mon',
       timeLabel: '06:00',
-      dateLabel: formatDateLabel(this.weekDates()[Number(slot.gridColumn) - 1] ?? this.activeDate()),
+      dateKey: this.formatDateKey(this.weekDates()[Number(slot.gridColumn) - 1] ?? this.activeDate()),
+      dateLabel: formatDateLabelInZone(this.weekDates()[Number(slot.gridColumn) - 1] ?? this.activeDate(), this.selectedTimeZone()),
       gridColumn: slot.gridColumn,
       gridRow: slot.gridRow,
       eventGridRow: slot.gridRow,
@@ -377,6 +333,26 @@ export class Calendar {
     const clonedDate = cloneDate(date);
     this.activeDate.set(clonedDate);
     this.dateSyncService.setSelectedDate(clonedDate);
+  }
+
+  private syncActiveDateFromKey(dateKey: string): void {
+    const parsed = this.parseDateKey(dateKey);
+    if (parsed) {
+      this.syncActiveDate(parsed);
+    }
+  }
+
+  private formatDateKey(date: Date): string {
+    return formatDateKey(date, this.selectedTimeZone());
+  }
+
+  private eventDateKey(event: CalendarEvent): string {
+    return event.dateKey;
+  }
+
+  private parseDateKey(dateKey: string): Date | null {
+    const parsed = new Date(`${dateKey}T00:00:00`);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
   }
 
   private resetModalState(): void {
