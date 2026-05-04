@@ -191,11 +191,16 @@
         width: 100%;
         border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 14px;
-        background: rgba(255, 255, 255, 0.05);
+        background: rgba(18, 23, 36, 0.98);
         color: #fff;
         padding: 10px 12px;
         outline: none;
         cursor: pointer;
+        color-scheme: dark;
+    }
+    &__timezone-select option {
+        background: #121724;
+        color: #fff;
     }
     &__timezone-select:focus {
         border-color: rgba(124, 95, 255, 0.9);
